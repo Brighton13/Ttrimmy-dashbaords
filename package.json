@@ -4,26 +4,36 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:realtime": "tsx scripts/server.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "cross-env NODE_ENV=production tsx scripts/server.ts",
     "lint": "eslint"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cross-env": "^10.0.0",
+    "ioredis": "^5.8.1",
     "next": "16.2.1",
+    "nodemailer": "^7.0.7",
     "pg": "^8.20.0",
     "pg-hstore": "^2.3.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sequelize": "^6.37.8",
+    "ws": "^8.18.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.2",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }

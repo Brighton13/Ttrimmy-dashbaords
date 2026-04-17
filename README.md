@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ttrimmy Facility Response
 
-## Getting Started
+Role-based facilities issue management for a campus environment. Students register and report issues, supervisors assign work to technicians, technicians complete tasks, and administrators monitor analytics for operational decisions.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 App Router
+- PostgreSQL with Sequelize
+- Redis pub/sub for notification fan-out with local fallback for development
+- WebSockets for live in-app notifications
+- Email notifications with SMTP or stream transport fallback
+
+## Implemented Workflow
+
+- Students can self-register and submit issues for plumbing, electrical, broken windows, networking, furniture, and safety concerns.
+- Supervisors can triage incoming issues and assign them to technicians.
+- Technicians can update assigned tasks and resolve jobs with notes.
+- Administrators can review backlog, critical issue volume, resolution time, and category distribution.
+- Notifications are persisted in Postgres, published through Redis, pushed through WebSockets, and optionally copied to email.
+
+## Local Setup
+
+1. Copy `.env.example` to `.env.local` and update the values.
+2. Ensure PostgreSQL is running and the target database exists.
+3. Optionally start Redis if you want multi-process notification fan-out.
+4. Install dependencies with `npm install`.
+5. Run the app with `npm run dev`.
+
+`npm run dev` now starts the standard Next.js development server.
+
+If you want to run the custom WebSocket-enabled entrypoint locally, use `npm run dev:realtime`.
+
+## Environment Variables
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/ttrimmy_facility_response
+SESSION_SECRET=replace-this-with-a-long-random-secret
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Optional Redis
+REDIS_URL=redis://127.0.0.1:6379
+
+# Optional SMTP
+SMTP_URL=
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=alerts@ttrimmy.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If Redis is not configured, notifications still work inside a single process through a local event bus. If SMTP is not configured, email sends use Nodemailer stream transport so the app still runs without a mail server.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Seeded Accounts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+These accounts are created automatically on first boot if the database is empty.
 
-## Learn More
+- Admin: `admin@ttrimmy.local`
+- Supervisor: `supervisor@ttrimmy.local`
+- Technician: `electrician@ttrimmy.local`
+- Technician: `plumber@ttrimmy.local`
+- Student: `student@ttrimmy.local`
 
-To learn more about Next.js, take a look at the following resources:
+Default password for all seeded accounts:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+Password123!
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Validation
 
-## Deploy on Vercel
+The current implementation has been validated with:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run build
+```

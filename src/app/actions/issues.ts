@@ -1,0 +1,76 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import { requireRole } from "@/lib/auth/session";
+import { issueCategories, issuePriorities, issueStatuses } from "@/lib/core/config";
+import { assignIssue, createIssue, updateIssueStatus } from "@/lib/services/issues";
+
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export async function createIssueAction(formData: FormData) {
+  const session = await requireRole(["student"]);
+  const category = getString(formData, "category");
+  const priority = getString(formData, "priority");
+
+  if (!issueCategories.includes(category as (typeof issueCategories)[number])) {
+    redirect("/dashboard/issues?error=category");
+  }
+
+  if (!issuePriorities.includes(priority as (typeof issuePriorities)[number])) {
+    redirect("/dashboard/issues?error=priority");
+  }
+
+  await createIssue({
+    title: getString(formData, "title"),
+    description: getString(formData, "description"),
+    category: category as (typeof issueCategories)[number],
+    location: getString(formData, "location"),
+    priority: priority as (typeof issuePriorities)[number],
+    studentId: session.user.id,
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/issues");
+  redirect("/dashboard/issues?created=1");
+}
+
+export async function assignIssueAction(formData: FormData) {
+  const session = await requireRole(["supervisor", "admin"]);
+
+  await assignIssue({
+    issueId: getString(formData, "issueId"),
+    assignedToId: getString(formData, "assignedToId"),
+    assignedById: session.user.id,
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/issues");
+  revalidatePath("/dashboard/tasks");
+  redirect("/dashboard/issues?assigned=1");
+}
+
+export async function updateIssueStatusAction(formData: FormData) {
+  const session = await requireRole(["technician", "supervisor", "admin"]);
+  const status = getString(formData, "status");
+
+  if (!issueStatuses.includes(status as (typeof issueStatuses)[number])) {
+    redirect("/dashboard/tasks?error=status");
+  }
+
+  await updateIssueStatus({
+    issueId: getString(formData, "issueId"),
+    actorId: session.user.id,
+    status: status as (typeof issueStatuses)[number],
+    resolutionNotes: getString(formData, "resolutionNotes"),
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/issues");
+  revalidatePath("/dashboard/tasks");
+  redirect("/dashboard/tasks?updated=1");
+}

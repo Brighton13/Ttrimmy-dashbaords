@@ -1,0 +1,135 @@
+import crypto from "node:crypto";
+
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { appConfig, roleLabels, type UserRole } from "@/lib/core/config";
+import { ensureAppReady } from "@/lib/core/bootstrap";
+import { User } from "@/lib/data/models";
+import { createRealtimeToken } from "@/lib/realtime/token";
+
+export const SESSION_COOKIE = "ttrimmy_session";
+
+export type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  department: string | null;
+};
+
+export type AppSession = {
+  user: SessionUser;
+  realtimeToken: string;
+};
+
+function sign(value: string) {
+  return crypto
+    .createHmac("sha256", appConfig.sessionSecret)
+    .update(value)
+    .digest("hex");
+}
+
+function encode(user: SessionUser) {
+  const payload = Buffer.from(JSON.stringify(user)).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+}
+
+function decode(token: string): SessionUser | null {
+  const [payload, signature] = token.split(".");
+
+  if (!payload || !signature || sign(payload) !== signature) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as SessionUser;
+  } catch {
+    return null;
+  }
+}
+
+export async function createSession(user: SessionUser) {
+  const cookieStore = await cookies();
+
+  cookieStore.set(SESSION_COOKIE, encode(user), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+}
+
+export async function clearSession() {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE);
+}
+
+export async function getCurrentSession(): Promise<AppSession | null> {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (!raw) {
+    return null;
+  }
+
+  const user = decode(raw);
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    user,
+    realtimeToken: createRealtimeToken(user),
+  };
+}
+
+export async function requireSession() {
+  const session = await getCurrentSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  return session;
+}
+
+export async function requireRole(roles: UserRole[]) {
+  const session = await requireSession();
+
+  if (!roles.includes(session.user.role)) {
+    redirect("/dashboard");
+  }
+
+  return session;
+}
+
+export function roleDescription(role: UserRole) {
+  return roleLabels[role];
+}
+
+export async function authenticateUser(email: string, password: string) {
+  await ensureAppReady();
+  const user = await User.findOne({ where: { email: email.toLowerCase() } });
+
+  if (!user) {
+    return null;
+  }
+
+  const bcrypt = await import("bcryptjs");
+  const matches = await bcrypt.compare(password, user.passwordHash);
+
+  if (!matches) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    department: user.department,
+  } satisfies SessionUser;
+}
