@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ttrimmy Facility Response",
+  title: "Facility Maintenance Tracking System",
   description: "Role-based issue reporting, pending work management, execution, and analytics for campus facilities.",
 };
 

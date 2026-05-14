@@ -22,10 +22,10 @@ export default async function DashboardLayout({
         <div className="border-b border-slate-200 px-4 py-5">
           <Link className="flex items-start gap-3" href="/dashboard">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-sm font-semibold text-white">
-              T
+              D
             </span>
             <span>
-              <strong className="block text-sm font-semibold text-slate-950">Ttrimmy Facility</strong>
+              <strong className="block text-sm font-semibold text-slate-950">Dynamic Dashboard</strong>
               <span className="block text-xs text-slate-500">Operations Portal</span>
             </span>
           </Link>
@@ -47,23 +47,11 @@ export default async function DashboardLayout({
 
         <div className="mt-auto border-t border-slate-200 px-4 py-5">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-sky-700">
-              {session.user.name
-                .split(" ")
-                .map((part) => part[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase()}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-950">{session.user.name}</p>
-              <p className="truncate text-xs text-slate-500">{session.user.email}</p>
-            </div>
+           
+           
           </div>
           <div className="mt-4 flex items-center justify-between gap-3">
-            <Link className="text-sm font-medium text-slate-500 transition hover:text-slate-900" href="/">
-              Landing page
-            </Link>
+           
             <form action={logoutAction}>
               <button className="text-sm font-medium text-rose-600 transition hover:text-rose-700" type="submit">
                 Sign out

@@ -143,6 +143,7 @@ async function bootstrap() {
 }
 
 export async function ensureAppReady() {
+  initializeModels();
   globalThis.__ttrimmyBootstrapPromise ??= bootstrap();
   await globalThis.__ttrimmyBootstrapPromise;
 }

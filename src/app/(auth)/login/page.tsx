@@ -14,14 +14,15 @@ export default async function LoginPage({
       <div className="w-full max-w-[900px] rounded-[34px] bg-[#d8dceb] px-6 py-10 shadow-[0_24px_60px_rgba(30,41,59,0.12)] sm:px-10 sm:py-14">
         <div className="mx-auto max-w-[640px] text-center">
           <p className="text-3xl font-black uppercase leading-[1.05] tracking-tight text-[#1a2342] sm:text-[2.65rem]">
-            Dynamic Tracking System
+            DYNAMIC MAINTENANCE 
             <br />
-            for Public Facility
+             TRACKING SYSTEM
             <br />
-            Maintenance
+           FOR PUBLIC FACILITIES
           </p>
           <p className="mt-6 text-base font-medium italic text-[#3f4866] sm:text-lg">
             Analysing Resolution Rates and Backlog Management
+            
           </p>
         </div>
 

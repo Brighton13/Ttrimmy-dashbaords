@@ -26,7 +26,7 @@ export function ActionModal({
       </button>
       <dialog
         aria-labelledby={titleId}
-        className="backdrop:bg-slate-950/40 w-full max-w-2xl rounded-[18px] border border-slate-200 p-0 shadow-[0_24px_80px_rgba(15,23,42,0.22)]"
+        className="fixed inset-0 m-auto w-full max-w-2xl rounded-[18px] border border-slate-200 p-0 shadow-[0_24px_80px_rgba(15,23,42,0.22)] backdrop:bg-slate-950/40"
         ref={dialogRef}
       >
         <div className="bg-white p-6 sm:p-7">
