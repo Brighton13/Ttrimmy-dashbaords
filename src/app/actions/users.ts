@@ -104,6 +104,8 @@ export async function updateUserAction(formData: FormData) {
         id: user.id,
         name: user.name,
         email: user.email,
+        studentId: user.studentId,
+        employeeId: user.employeeId,
         role: user.role,
         department: user.department,
       });

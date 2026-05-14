@@ -1,5 +1,5 @@
 export const appConfig = {
-  appName: "Ttrimmy Facility Response",
+  appName: "Facility Maintenance Tracking System",
   databaseUrl:
     process.env.DATABASE_URL ??
     "postgres://postgres:root@localhost:5432/trimmy_db",

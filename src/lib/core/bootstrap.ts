@@ -1,11 +1,34 @@
 import bcrypt from "bcryptjs";
 
 import { sequelize } from "@/lib/core/db";
-import { Notification, User, Issue, initializeModels } from "@/lib/data/models";
+import {
+  ensureUserIdentifiers,
+  Notification,
+  User,
+  Issue,
+  initializeModels,
+} from "@/lib/data/models";
 import { startNotificationSubscription } from "@/lib/notifications/redis";
 
 declare global {
   var __ttrimmyBootstrapPromise: Promise<void> | undefined;
+}
+
+async function backfillUserIdentifiers() {
+  const users = await User.findAll({ order: [["createdAt", "ASC"], ["id", "ASC"]] });
+
+  for (const user of users) {
+    if (user.role === "student" && user.studentId) {
+      continue;
+    }
+
+    if (user.role !== "student" && user.employeeId) {
+      continue;
+    }
+
+    await ensureUserIdentifiers(user);
+    await user.save({ fields: ["studentId", "employeeId"] });
+  }
 }
 
 async function seedIfEmpty() {
@@ -17,43 +40,41 @@ async function seedIfEmpty() {
 
   const passwordHash = await bcrypt.hash("Password123!", 10);
 
-  const [admin, supervisor, student, electrician, plumber] = await Promise.all([
-    User.create({
-      name: "Campus Admin",
-      email: "admin@ttrimmy.local",
-      role: "admin",
-      passwordHash,
-      department: "Administration",
-    }),
-    User.create({
-      name: "Grace Supervisor",
-      email: "supervisor@ttrimmy.local",
-      role: "supervisor",
-      passwordHash,
-      department: "Electrical",
-    }),
-    User.create({
-      name: "Amina Student",
-      email: "student@ttrimmy.local",
-      role: "student",
-      passwordHash,
-      department: "Engineering Hostel",
-    }),
-    User.create({
-      name: "Joel Electrician",
-      email: "electrician@ttrimmy.local",
-      role: "technician",
-      passwordHash,
-      department: "Electrical",
-    }),
-    User.create({
-      name: "Maria Plumber",
-      email: "plumber@ttrimmy.local",
-      role: "technician",
-      passwordHash,
-      department: "Plumbing",
-    }),
-  ]);
+  const admin = await User.create({
+    name: "Campus Admin",
+    email: "admin@ttrimmy.local",
+    role: "admin",
+    passwordHash,
+    department: "Administration",
+  });
+  const supervisor = await User.create({
+    name: "Grace Supervisor",
+    email: "supervisor@ttrimmy.local",
+    role: "supervisor",
+    passwordHash,
+    department: "Electrical",
+  });
+  const student = await User.create({
+    name: "Amina Student",
+    email: "student@ttrimmy.local",
+    role: "student",
+    passwordHash,
+    department: "Engineering Hostel",
+  });
+  const electrician = await User.create({
+    name: "Joel Electrician",
+    email: "electrician@ttrimmy.local",
+    role: "technician",
+    passwordHash,
+    department: "Electrical",
+  });
+  const plumber = await User.create({
+    name: "Maria Plumber",
+    email: "plumber@ttrimmy.local",
+    role: "technician",
+    passwordHash,
+    department: "Plumbing",
+  });
 
   const issue = await Issue.create({
     title: "Broken corridor light",
@@ -115,7 +136,8 @@ async function seedIfEmpty() {
 async function bootstrap() {
   initializeModels();
   await sequelize.authenticate();
-  await sequelize.sync();
+  await sequelize.sync({ alter: true });
+  await backfillUserIdentifiers();
   await seedIfEmpty();
   await startNotificationSubscription();
 }

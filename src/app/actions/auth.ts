@@ -10,9 +10,9 @@ function getString(formData: FormData, key: string) {
 }
 
 export async function loginAction(formData: FormData) {
-  const email = getString(formData, "email");
+  const identifier = getString(formData, "identifier") || getString(formData, "email");
   const password = getString(formData, "password");
-  const user = await authenticateUser(email, password);
+  const user = await authenticateUser(identifier, password);
 
   if (!user) {
     redirect("/login?error=invalid_credentials");

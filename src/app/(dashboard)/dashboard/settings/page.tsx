@@ -1,4 +1,5 @@
 import { Panel } from "@/components/ui";
+import { getPreferredLoginIdentifier } from "@/lib/auth/session";
 import { requireRole } from "@/lib/auth/session";
 import { appConfig } from "@/lib/core/config";
 
@@ -45,6 +46,10 @@ export default async function SettingsPage() {
           <div className="flex items-center justify-between gap-3">
             <span className="text-slate-600">Role</span>
             <strong className="text-slate-900">{session.user.role}</strong>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-slate-600">Login ID</span>
+            <strong className="text-slate-900">{getPreferredLoginIdentifier(session.user)}</strong>
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-slate-600">Department</span>

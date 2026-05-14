@@ -1,5 +1,3 @@
-import { Op } from "sequelize";
-
 import { ensureAppReady } from "@/lib/core/bootstrap";
 import {
   issueCategories,
@@ -274,11 +272,6 @@ export async function getUserDirectory() {
   await ensureAppReady();
 
   return User.findAll({
-    where: {
-      role: {
-        [Op.in]: ["student", "technician", "supervisor", "admin"],
-      },
-    },
     order: [["role", "ASC"], ["name", "ASC"]],
   });
 }

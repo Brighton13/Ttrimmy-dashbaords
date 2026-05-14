@@ -2,6 +2,7 @@ import { createUserAction, updateUserAction } from "@/app/actions/users";
 import { ActionModal } from "@/components/action-modal";
 import { PaginationLinks } from "@/components/pagination-links";
 import { MetricCard, StatusPill } from "@/components/ui";
+import { getPreferredLoginIdentifier } from "@/lib/auth/session";
 import { requireRole } from "@/lib/auth/session";
 import { technicalDepartments, userRoles } from "@/lib/core/config";
 import { getUserDirectory } from "@/lib/services/issues";
@@ -20,7 +21,14 @@ export default async function UsersPage({
   const users = await getUserDirectory();
   const filteredUsers = search
     ? users.filter((user) =>
-        [user.name, user.email, user.role, user.department ?? ""]
+        [
+          user.name,
+          user.email,
+          user.studentId ?? "",
+          user.employeeId ?? "",
+          user.role,
+          user.department ?? "",
+        ]
           .join(" ")
           .toLowerCase()
           .includes(search),
@@ -47,7 +55,7 @@ export default async function UsersPage({
           <div>
             <h2 className="text-3xl font-semibold tracking-tight text-slate-950">Users</h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-              Manage user accounts, roles, and department ownership from one operational directory.
+              Manage user accounts, roles, department ownership, and the generated IDs used for sign-in.
             </p>
           </div>
           <ActionModal
@@ -117,7 +125,7 @@ export default async function UsersPage({
       <section className="table-shell">
         <div className="table-toolbar">
           <form action="/dashboard/users" className="w-full max-w-md">
-            <input className="field-input" defaultValue={params.q ?? ""} name="q" placeholder="Search by name, email, role, or department..." type="search" />
+            <input className="field-input" defaultValue={params.q ?? ""} name="q" placeholder="Search by name, email, login ID, role, or department..." type="search" />
           </form>
           <div className="text-sm text-slate-500">
             Showing {filteredUsers.length === 0 ? 0 : startIndex + 1}-{Math.min(startIndex + USERS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length} results
@@ -128,6 +136,7 @@ export default async function UsersPage({
             <thead className="table-head">
               <tr>
                 <th className="table-head-cell">Name</th>
+                <th className="table-head-cell">Login ID</th>
                 <th className="table-head-cell">Email</th>
                 <th className="table-head-cell">Role</th>
                 <th className="table-head-cell">Department</th>
@@ -140,6 +149,12 @@ export default async function UsersPage({
                   <td className="table-cell">
                     <div className="font-semibold text-slate-950">{user.name}</div>
                     <div className="mt-1 text-xs text-slate-500">{user.id.slice(0, 8)}</div>
+                  </td>
+                  <td className="table-cell">
+                    <div className="font-medium text-slate-900">{getPreferredLoginIdentifier(user)}</div>
+                    <div className="mt-1 text-xs text-slate-500">
+                      {user.role === "student" ? "Student ID" : "Employee ID"}
+                    </div>
                   </td>
                   <td className="table-cell">{user.email}</td>
                   <td className="table-cell">

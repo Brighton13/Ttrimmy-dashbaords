@@ -14,6 +14,8 @@ export type SessionUser = {
   id: string;
   name: string;
   email: string;
+  studentId?: string | null;
+  employeeId?: string | null;
   role: UserRole;
   department: string | null;
 };
@@ -37,10 +39,20 @@ function isSessionUser(value: unknown): value is SessionUser {
     candidate.name.length > 0 &&
     typeof candidate.email === "string" &&
     candidate.email.length > 0 &&
+    (candidate.studentId === undefined || candidate.studentId === null || typeof candidate.studentId === "string") &&
+    (candidate.employeeId === undefined || candidate.employeeId === null || typeof candidate.employeeId === "string") &&
     typeof candidate.role === "string" &&
     candidate.role in roleLabels &&
     (candidate.department === null || typeof candidate.department === "string")
   );
+}
+
+export function getPreferredLoginIdentifier(user: {
+  email: string;
+  studentId?: string | null;
+  employeeId?: string | null;
+}) {
+  return user.studentId ?? user.employeeId ?? user.email;
 }
 
 function sign(value: string) {
@@ -131,9 +143,19 @@ export function roleDescription(role: UserRole) {
   return roleLabels[role];
 }
 
-export async function authenticateUser(email: string, password: string) {
+export async function authenticateUser(identifier: string, password: string) {
   await ensureAppReady();
-  const user = await User.findOne({ where: { email: email.toLowerCase() } });
+  const normalizedIdentifier = identifier.trim();
+  const normalizedEmail = normalizedIdentifier.toLowerCase();
+  const normalizedLoginId = normalizedIdentifier.toUpperCase();
+
+  const userByEmail = await User.findOne({ where: { email: normalizedEmail } });
+  const userByStudentId = userByEmail
+    ? null
+    : await User.findOne({ where: { studentId: normalizedLoginId } });
+  const user = userByStudentId
+    ?? userByEmail
+    ?? await User.findOne({ where: { employeeId: normalizedLoginId } });
 
   if (!user) {
     return null;
@@ -150,6 +172,8 @@ export async function authenticateUser(email: string, password: string) {
     id: user.id,
     name: user.name,
     email: user.email,
+    studentId: user.studentId,
+    employeeId: user.employeeId,
     role: user.role,
     department: user.department,
   } satisfies SessionUser;

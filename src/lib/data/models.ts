@@ -5,6 +5,7 @@ import {
   InferCreationAttributes,
   Model,
   NonAttribute,
+  Op,
 } from "sequelize";
 
 import { sequelize } from "@/lib/core/db";
@@ -20,6 +21,8 @@ export class User extends Model<
   InferCreationAttributes<User>
 > {
   declare id: CreationOptional<string>;
+  declare studentId: CreationOptional<string | null>;
+  declare employeeId: CreationOptional<string | null>;
   declare name: string;
   declare email: string;
   declare role: UserRole;
@@ -73,6 +76,34 @@ export class Notification extends Model<
 
 let initialized = false;
 
+async function generateNextUserIdentifier(
+  field: "studentId" | "employeeId",
+  prefix: "STU" | "EMP",
+) {
+  let sequence = (await User.count({ where: { [field]: { [Op.ne]: null } } })) + 1;
+
+  while (true) {
+    const candidate = `${prefix}-${String(sequence).padStart(5, "0")}`;
+    const existing = await User.findOne({ where: { [field]: candidate } });
+
+    if (!existing) {
+      return candidate;
+    }
+
+    sequence += 1;
+  }
+}
+
+export async function ensureUserIdentifiers(user: User) {
+  if (user.role === "student" && !user.studentId) {
+    user.studentId = await generateNextUserIdentifier("studentId", "STU");
+  }
+
+  if (user.role !== "student" && !user.employeeId) {
+    user.employeeId = await generateNextUserIdentifier("employeeId", "EMP");
+  }
+}
+
 export function initializeModels() {
   if (initialized) {
     return;
@@ -84,6 +115,16 @@ export function initializeModels() {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
+      },
+      studentId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true,
+      },
+      employeeId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true,
       },
       name: {
         type: DataTypes.STRING,
@@ -119,6 +160,9 @@ export function initializeModels() {
       sequelize,
       modelName: "User",
       tableName: "users",
+      hooks: {
+        beforeSave: ensureUserIdentifiers,
+      },
     },
   );
 

@@ -1,15 +1,6 @@
-import Link from "next/link";
-
 import { loginAction } from "@/app/actions/auth";
 
 export const dynamic = "force-dynamic";
-
-const demoAccounts = [
-  ["Student", "student@ttrimmy.local"],
-  ["Supervisor", "supervisor@ttrimmy.local"],
-  ["Technician", "electrician@ttrimmy.local"],
-  ["Admin", "admin@ttrimmy.local"],
-] as const;
 
 export default async function LoginPage({
   searchParams,
@@ -19,42 +10,22 @@ export default async function LoginPage({
   const params = await searchParams;
 
   return (
-    <main className="mx-auto grid min-h-screen w-full max-w-[1280px] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
-      <section className="surface-panel overflow-hidden bg-slate-950 p-8 text-white sm:p-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Secure access</p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-          Sign in to the facility response workspace.
-        </h1>
-        <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
-          Every account is created by an administrator so user roles, departments, and workflow permissions stay controlled from day one.
-        </p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Demo password</p>
-            <p className="mt-2 text-lg font-semibold">Password123!</p>
-          </div>
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Access model</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">Students submit issues. Supervisors assign by department. Technicians execute tasks. Admins manage users and oversight.</p>
-          </div>
+    <main className="flex min-h-screen items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[900px] rounded-[34px] bg-[#d8dceb] px-6 py-10 shadow-[0_24px_60px_rgba(30,41,59,0.12)] sm:px-10 sm:py-14">
+        <div className="mx-auto max-w-[640px] text-center">
+          <p className="text-3xl font-black uppercase leading-[1.05] tracking-tight text-[#1a2342] sm:text-[2.65rem]">
+            Dynamic Tracking System
+            <br />
+            for Public Facility
+            <br />
+            Maintenance
+          </p>
+          <p className="mt-6 text-base font-medium italic text-[#3f4866] sm:text-lg">
+            Analysing Resolution Rates and Backlog Management
+          </p>
         </div>
-        <div className="mt-8 rounded-[28px] border border-white/10 bg-white/5 p-6">
-          <h2 className="text-lg font-semibold">Seeded role logins</h2>
-          <div className="mt-4 space-y-3">
-            {demoAccounts.map(([role, email]) => (
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 px-4 py-3" key={email}>
-                <span className="text-sm font-medium text-slate-200">{role}</span>
-                <span className="text-sm text-slate-400">{email}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <Link className="mt-8 inline-flex text-sm font-medium text-cyan-300 transition hover:text-cyan-200" href="/">
-          Return to landing page
-        </Link>
-      </section>
 
-      <div className="flex flex-col gap-5">
+        <div className="mx-auto mt-10 w-full max-w-[470px] flex-col gap-5">
         {params.error ? (
           <section className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
             <strong className="font-semibold">Sign-in status</strong>
@@ -62,37 +33,61 @@ export default async function LoginPage({
           </section>
         ) : null}
 
-        <section className="surface-panel p-8 sm:p-10">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Account login</p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Enter your credentials</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Use the account details created for you by the administrator.
-              </p>
+          <section className="rounded-[28px] bg-white px-5 py-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] sm:px-6 sm:py-7">
+            <div className="flex items-start justify-between gap-4">
+              <div className="text-left">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Account login</p>
+                <h1 className="mt-3 text-[2rem] font-bold leading-none tracking-tight text-slate-900">
+                  Enter your
+                  <br />
+                  credentials
+                </h1>
+                <p className="mt-3 max-w-[220px] text-sm leading-6 text-slate-500">
+                  Use the account details created for you by the administrator.
+                </p>
+              </div>
+              <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-center text-[11px] font-bold uppercase leading-tight tracking-[0.16em] text-slate-400">
+                Role based
+                <br />
+                access
+              </div>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Role based access
-            </div>
-          </div>
-          <form action={loginAction} className="mt-8 space-y-5">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="login-email">
-                Email
-              </label>
-              <input className="field-input" id="login-email" name="email" type="email" required />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="login-password">
-                Password
-              </label>
-              <input className="field-input" id="login-password" name="password" type="password" required />
-            </div>
-            <button className="primary-button w-full" type="submit">
-              Enter dashboard
-            </button>
-          </form>
-        </section>
+
+            <form action={loginAction} className="mt-8 space-y-5">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="login-identifier">
+                  Email
+                </label>
+                <input
+                  className="w-full rounded-xl border border-[#e2e8f6] bg-[#edf4ff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
+                  id="login-identifier"
+                  name="identifier"
+                  required
+                  type="text"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="login-password">
+                  Password
+                </label>
+                <input
+                  className="w-full rounded-xl border border-[#e2e8f6] bg-[#edf4ff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
+                  id="login-password"
+                  name="password"
+                  required
+                  type="password"
+                />
+              </div>
+              <button
+                className="inline-flex w-full items-center justify-center rounded-xl bg-[#0f8dd8] px-4 py-3 text-base font-semibold text-white transition hover:bg-[#0b79bb]"
+                type="submit"
+              >
+                Log In
+              </button>
+              <p className="text-center text-sm font-medium text-slate-600">Forgot Password</p>
+            </form>
+          </section>
+        </div>
       </div>
     </main>
   );
