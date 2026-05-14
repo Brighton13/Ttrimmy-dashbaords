@@ -30,7 +30,7 @@ async function seedIfEmpty() {
       email: "supervisor@ttrimmy.local",
       role: "supervisor",
       passwordHash,
-      department: "Facilities",
+      department: "Electrical",
     }),
     User.create({
       name: "Amina Student",
@@ -72,7 +72,7 @@ async function seedIfEmpty() {
     {
       userId: supervisor.id,
       title: "New sample issue seeded",
-      message: `Issue ${issue.reference} is available for triage.`,
+      message: `Issue ${issue.reference} is pending department assignment.`,
       type: "issue.created",
     },
     {
@@ -105,7 +105,7 @@ async function seedIfEmpty() {
     category: "Windows",
     location: "Lecture Hall 2",
     priority: "medium",
-    status: "triaged",
+    status: "pending",
     studentId: student.id,
     assignedById: supervisor.id,
     assignedToId: plumber.id,

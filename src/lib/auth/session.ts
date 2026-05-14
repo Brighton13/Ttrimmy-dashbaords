@@ -23,6 +23,26 @@ export type AppSession = {
   realtimeToken: string;
 };
 
+function isSessionUser(value: unknown): value is SessionUser {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<SessionUser>;
+
+  return (
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.name === "string" &&
+    candidate.name.length > 0 &&
+    typeof candidate.email === "string" &&
+    candidate.email.length > 0 &&
+    typeof candidate.role === "string" &&
+    candidate.role in roleLabels &&
+    (candidate.department === null || typeof candidate.department === "string")
+  );
+}
+
 function sign(value: string) {
   return crypto
     .createHmac("sha256", appConfig.sessionSecret)
@@ -76,7 +96,8 @@ export async function getCurrentSession(): Promise<AppSession | null> {
 
   const user = decode(raw);
 
-  if (!user) {
+  if (!isSessionUser(user)) {
+    cookieStore.delete(SESSION_COOKIE);
     return null;
   }
 

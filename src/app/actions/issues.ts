@@ -15,14 +15,9 @@ function getString(formData: FormData, key: string) {
 export async function createIssueAction(formData: FormData) {
   const session = await requireRole(["student"]);
   const category = getString(formData, "category");
-  const priority = getString(formData, "priority");
 
   if (!issueCategories.includes(category as (typeof issueCategories)[number])) {
     redirect("/dashboard/issues?error=category");
-  }
-
-  if (!issuePriorities.includes(priority as (typeof issuePriorities)[number])) {
-    redirect("/dashboard/issues?error=priority");
   }
 
   await createIssue({
@@ -30,7 +25,6 @@ export async function createIssueAction(formData: FormData) {
     description: getString(formData, "description"),
     category: category as (typeof issueCategories)[number],
     location: getString(formData, "location"),
-    priority: priority as (typeof issuePriorities)[number],
     studentId: session.user.id,
   });
 
@@ -40,12 +34,18 @@ export async function createIssueAction(formData: FormData) {
 }
 
 export async function assignIssueAction(formData: FormData) {
-  const session = await requireRole(["supervisor", "admin"]);
+  const session = await requireRole(["supervisor"]);
+  const priority = getString(formData, "priority");
+
+  if (!issuePriorities.includes(priority as (typeof issuePriorities)[number])) {
+    redirect("/dashboard/issues?error=priority");
+  }
 
   await assignIssue({
     issueId: getString(formData, "issueId"),
     assignedToId: getString(formData, "assignedToId"),
-    assignedById: session.user.id,
+    assignedBy: session.user,
+    priority: priority as (typeof issuePriorities)[number],
   });
 
   revalidatePath("/dashboard");
@@ -55,7 +55,7 @@ export async function assignIssueAction(formData: FormData) {
 }
 
 export async function updateIssueStatusAction(formData: FormData) {
-  const session = await requireRole(["technician", "supervisor", "admin"]);
+  const session = await requireRole(["technician", "supervisor"]);
   const status = getString(formData, "status");
 
   if (!issueStatuses.includes(status as (typeof issueStatuses)[number])) {
@@ -64,7 +64,7 @@ export async function updateIssueStatusAction(formData: FormData) {
 
   await updateIssueStatus({
     issueId: getString(formData, "issueId"),
-    actorId: session.user.id,
+    actor: session.user,
     status: status as (typeof issueStatuses)[number],
     resolutionNotes: getString(formData, "resolutionNotes"),
   });

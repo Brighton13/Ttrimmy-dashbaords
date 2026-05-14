@@ -162,7 +162,7 @@ export function initializeModels() {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("open", "triaged", "in_progress", "resolved"),
+        type: DataTypes.ENUM("open", "pending", "in_progress", "resolved"),
         allowNull: false,
         defaultValue: "open",
       },

@@ -10,12 +10,12 @@ export function MetricCard({
   detail?: string;
 }) {
   return (
-    <article className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/60">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <strong className="mt-3 block text-3xl font-semibold tracking-tight text-slate-900">
+    <article className="surface-card p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <strong className="mt-4 block text-3xl font-semibold tracking-tight text-slate-950">
         {value}
       </strong>
-      {detail ? <p className="mt-2 text-sm text-slate-500">{detail}</p> : null}
+      {detail ? <p className="mt-2 text-sm leading-6 text-slate-500">{detail}</p> : null}
     </article>
   );
 }
@@ -30,11 +30,11 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/60">
-      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <section className="surface-panel p-6 sm:p-7">
+      <div className="mb-6 flex flex-col gap-2 border-b border-slate-200/70 pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight text-slate-900">{title}</h2>
-          {description ? <p className="mt-1 max-w-2xl text-sm text-slate-500">{description}</p> : null}
+          <h2 className="text-xl font-semibold tracking-tight text-slate-950">{title}</h2>
+          {description ? <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">{description}</p> : null}
         </div>
       </div>
       {children}
@@ -46,13 +46,17 @@ export function StatusPill({ status }: { status: string }) {
   const normalized = status.replaceAll("_", " ");
   const tone =
     status === "resolved"
-      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-      : status === "critical" || status === "open"
-        ? "bg-rose-50 text-rose-700 ring-rose-200"
-        : "bg-amber-50 text-amber-700 ring-amber-200";
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : status === "critical"
+        ? "border-rose-200 bg-rose-50 text-rose-700"
+        : status === "open"
+          ? "border-sky-200 bg-sky-50 text-sky-700"
+          : status === "in_progress"
+            ? "border-amber-200 bg-amber-50 text-amber-700"
+            : "border-slate-200 bg-slate-50 text-slate-700";
 
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ring-1 ${tone}`}>
+    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize ${tone}`}>
       {normalized}
     </span>
   );
@@ -66,9 +70,9 @@ export function EmptyState({
   description: string;
 }) {
   return (
-    <div className="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-8 text-center">
-      <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-      <p className="mt-2 text-sm text-slate-500">{description}</p>
+    <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/80 p-10 text-center">
+      <h3 className="text-lg font-semibold text-slate-950">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
     </div>
   );
 }

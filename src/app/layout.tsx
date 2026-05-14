@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Ttrimmy Facility Response",
-  description: "Role-based issue reporting, triage, execution, and analytics for campus facilities.",
+  description: "Role-based issue reporting, pending work management, execution, and analytics for campus facilities.",
 };
 
 export default function RootLayout({

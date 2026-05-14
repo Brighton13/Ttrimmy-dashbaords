@@ -7,7 +7,7 @@ export default async function DashboardPage() {
   const session = await requireSession();
   const [snapshot, issues] = await Promise.all([
     getAnalyticsSnapshot(),
-    listDashboardIssues(session.user.role, session.user.id),
+    listDashboardIssues(session.user.role, session.user.id, session.user.department),
   ]);
 
   const openIssues = issues.filter((issue) => issue.status !== "resolved").length;
@@ -42,29 +42,51 @@ export default async function DashboardPage() {
 
   const highlightTitle =
     session.user.role === "student"
-      ? "My recent reports"
+      ? "Recent requests"
       : session.user.role === "technician"
-        ? "My active tasks"
+        ? "Assigned work"
         : session.user.role === "supervisor"
-          ? "Queue requiring attention"
+          ? "Department queue"
           : "Latest activity";
+
+  const focusByRole = {
+    student: [
+      { title: "Next action", detail: "Submit clear issue details and watch for assignment updates." },
+      { title: "What you can track", detail: "Status, assigned technician, and completion notes on your own requests." },
+    ],
+    technician: [
+      { title: "Next action", detail: "Move assigned jobs into progress as soon as work starts on site." },
+      { title: "What matters", detail: "Keep notes current so supervisors know what is blocked and what is resolved." },
+    ],
+    supervisor: [
+      { title: "Next action", detail: "Review unassigned items first, then balance load across technicians in your department." },
+      { title: "What matters", detail: "Priority and backlog are your early warning signs for service risk." },
+    ],
+    admin: [
+      { title: "Next action", detail: "Keep user roles and departments aligned with how the facility team is structured." },
+      { title: "What matters", detail: "Use backlog and closure time to decide where support or staffing is needed." },
+    ],
+  } as const;
 
   return (
     <>
-      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/60">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <section className="surface-panel p-6 sm:p-7">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-700">
-              Dashboard overview
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-              What matters right now
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              A compact summary tailored to your role so you can act without digging through unnecessary options.
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Overview</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Operational summary</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              The dashboard changes by role so each user sees a realistic operating view instead of generic cards.
             </p>
           </div>
-          <StatusPill status={session.user.role} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {focusByRole[session.user.role].map((item) => (
+              <article className="rounded-[22px] border border-slate-200 bg-slate-50 p-4" key={item.title}>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{item.detail}</p>
+              </article>
+            ))}
+          </div>
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {metricsByRole[session.user.role].map((metric) => (
@@ -73,21 +95,21 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <Panel
-          title={session.user.role === "admin" ? "Category load" : "Quick signals"}
-          description="A short view of where maintenance demand is showing up right now."
+          title={session.user.role === "admin" ? "Category load" : "Demand signals"}
+          description="A quick read of where requests are concentrating right now."
         >
           <div className="space-y-4">
             {snapshot.issueLoadByCategory.map((item) => (
-              <div key={String(item.category)}>
-                <div className="mb-2 flex items-center justify-between gap-4 text-sm">
+              <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4" key={String(item.category)}>
+                <div className="mb-3 flex items-center justify-between gap-4 text-sm">
                   <span className="font-medium text-slate-700">{String(item.category)}</span>
                   <strong className="text-slate-900">{String(item.total)}</strong>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-stone-100">
+                <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
                   <div
-                    className="h-full rounded-full bg-slate-900"
+                    className="h-full rounded-full bg-slate-950"
                     style={{ width: `${Number(item.total) * 12 + 12}%` }}
                   />
                 </div>
@@ -98,19 +120,23 @@ export default async function DashboardPage() {
 
         <Panel
           title={highlightTitle}
-          description="A small recent list so you can jump straight into the next decision or task."
+          description="A live list of the items most relevant to the current user role."
         >
           <div className="space-y-3">
             {issues.slice(0, 5).map((issue) => (
-              <article className="rounded-3xl border border-stone-200 bg-stone-50 p-4" key={issue.id}>
+              <article className="rounded-[22px] border border-slate-200 bg-slate-50 p-4" key={issue.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <strong className="text-sm font-semibold text-slate-900">{issue.reference}</strong>
-                    <p className="mt-1 text-sm text-slate-600">{issue.title}</p>
+                    <strong className="text-sm font-semibold text-slate-950">{issue.reference}</strong>
+                    <p className="mt-1 text-sm text-slate-700">{issue.title}</p>
                   </div>
                   <StatusPill status={issue.status} />
                 </div>
-                <p className="mt-2 text-sm text-slate-500">{issue.location}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <StatusPill status={issue.priority} />
+                  {session.user.role !== "student" ? <StatusPill status={issue.category} /> : null}
+                </div>
+                <p className="mt-3 text-sm text-slate-500">{issue.location}</p>
               </article>
             ))}
           </div>

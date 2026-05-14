@@ -23,6 +23,8 @@ export const roleLabels = {
   technician: "Technician",
 } as const;
 
+export const userRoles = ["admin", "student", "supervisor", "technician"] as const;
+
 export const issueCategories = [
   "Plumbing",
   "Electrical",
@@ -32,16 +34,19 @@ export const issueCategories = [
   "Safety",
 ] as const;
 
+export const technicalDepartments = issueCategories;
+export const technicalRoles = ["supervisor", "technician"] as const;
+
 export const issueStatuses = [
   "open",
-  "triaged",
+  "pending",
   "in_progress",
   "resolved",
 ] as const;
 
 export const issuePriorities = ["low", "medium", "high", "critical"] as const;
 
-export type UserRole = keyof typeof roleLabels;
+export type UserRole = (typeof userRoles)[number];
 export type IssueCategory = (typeof issueCategories)[number];
 export type IssueStatus = (typeof issueStatuses)[number];
 export type IssuePriority = (typeof issuePriorities)[number];

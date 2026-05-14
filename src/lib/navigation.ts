@@ -3,26 +3,27 @@ import type { UserRole } from "@/lib/core/config";
 export type DashboardNavItem = {
   href: string;
   label: string;
+  icon: "overview" | "issues" | "tasks" | "users" | "settings";
 };
 
 export const dashboardNavByRole: Record<UserRole, DashboardNavItem[]> = {
   student: [
-    { href: "/dashboard", label: "Home" },
-    { href: "/dashboard/issues", label: "My Issues" },
+    { href: "/dashboard", label: "Dashboard", icon: "overview" },
+    { href: "/dashboard/issues", label: "Requests", icon: "issues" },
   ],
   technician: [
-    { href: "/dashboard", label: "Home" },
-    { href: "/dashboard/tasks", label: "My Tasks" },
+    { href: "/dashboard", label: "Dashboard", icon: "overview" },
+    { href: "/dashboard/tasks", label: "Tasks", icon: "tasks" },
   ],
   supervisor: [
-    { href: "/dashboard", label: "Overview" },
-    { href: "/dashboard/issues", label: "Assignments" },
-    { href: "/dashboard/tasks", label: "Team Progress" },
+    { href: "/dashboard", label: "Dashboard", icon: "overview" },
+    { href: "/dashboard/issues", label: "Assignments", icon: "issues" },
+    { href: "/dashboard/tasks", label: "Execution", icon: "tasks" },
   ],
   admin: [
-    { href: "/dashboard", label: "Overview" },
-    { href: "/dashboard/users", label: "People" },
-    { href: "/dashboard/settings", label: "Platform" },
+    { href: "/dashboard", label: "Dashboard", icon: "overview" },
+    { href: "/dashboard/users", label: "Users", icon: "users" },
+    { href: "/dashboard/settings", label: "Settings", icon: "settings" },
   ],
 };
 
@@ -31,27 +32,27 @@ export const roleHeroCopy: Record<
   { title: string; description: string; badge: string }
 > = {
   student: {
-    badge: "Student workspace",
-    title: "Report a problem and track progress without the clutter.",
+    badge: "Student portal",
+    title: "Track maintenance requests without chasing updates.",
     description:
-      "Log hostel and classroom maintenance issues, then follow assignment and resolution updates from one simple view.",
+      "Raise facility issues, monitor status, and see when your request has moved from pending into active resolution.",
   },
   technician: {
     badge: "Technician workspace",
-    title: "Focus on the jobs assigned to you and move them to done.",
+    title: "Work through assigned jobs with clear ownership and status.",
     description:
-      "See your queue, update job state, and leave clear resolution notes for the student and supervisor.",
+      "Review your queue, move work through execution, and record completion notes that supervisors and students can trust.",
   },
   supervisor: {
-    badge: "Supervisor workspace",
-    title: "Triage incoming issues and keep the team load balanced.",
+    badge: "Department control",
+    title: "Route incoming work and keep departmental execution on track.",
     description:
-      "Assign work quickly, watch the backlog, and spot delays before critical issues escalate.",
+      "Set priority, assign technicians in your department, and keep the backlog from drifting into service risk.",
   },
   admin: {
-    badge: "Admin workspace",
-    title: "See the operating picture and make staffing and maintenance decisions.",
+    badge: "Operations control",
+    title: "Manage users and monitor service performance from one place.",
     description:
-      "Monitor issue categories, backlog pressure, resolution speed, and platform readiness with a compact control view.",
+      "Provision accounts, review workload trends, and keep the facility response process aligned with real operational demand.",
   },
 };

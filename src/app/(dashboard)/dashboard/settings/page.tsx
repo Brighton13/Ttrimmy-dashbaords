@@ -58,7 +58,7 @@ export default async function SettingsPage() {
         description="Decision-making parameters exposed by the dashboard."
       >
         <div className="space-y-3 text-sm leading-6 text-slate-600">
-          <p>Backlog by status identifies whether triage or execution capacity is constrained.</p>
+          <p>Backlog by status identifies whether pending work or execution capacity is constrained.</p>
           <p>Critical issue count shows immediate service risk and should drive escalation policy.</p>
           <p>Average resolution time shows whether technician staffing matches the issue mix.</p>
           <p>Category load helps plan preventive maintenance and inventory allocation.</p>

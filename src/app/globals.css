@@ -8,6 +8,7 @@
 @layer base {
   * {
     @apply border-stone-200;
+    box-sizing: border-box;
   }
 
   html {
@@ -15,11 +16,8 @@
   }
 
   body {
-    @apply min-h-full bg-stone-50 font-sans text-slate-900 antialiased;
-    background-image:
-      radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 28%),
-      radial-gradient(circle at top right, rgba(20, 184, 166, 0.14), transparent 22%),
-      linear-gradient(180deg, #fafaf9 0%, #f8fafc 45%, #f5f5f4 100%);
+    @apply min-h-full font-sans text-slate-900 antialiased;
+    background: #f5f7fb;
   }
 
   a {
@@ -31,5 +29,75 @@
   select,
   textarea {
     font: inherit;
+  }
+
+  ::selection {
+    background: rgba(15, 23, 42, 0.14);
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-[18px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)];
+  }
+
+  .surface-panel {
+    @apply rounded-[18px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)];
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10;
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700;
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
+  }
+
+  .dashboard-shell {
+    @apply min-h-screen lg:grid lg:grid-cols-[220px_minmax(0,1fr)];
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950;
+  }
+
+  .sidebar-link-active {
+    @apply bg-sky-600 text-white shadow-[0_10px_24px_rgba(2,132,199,0.25)] hover:bg-sky-600 hover:text-white;
+  }
+
+  .table-shell {
+    @apply overflow-hidden rounded-[18px] border border-slate-200 bg-white;
+  }
+
+  .table-toolbar {
+    @apply flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between;
+  }
+
+  .table-scroll {
+    @apply overflow-x-auto;
+  }
+
+  .table-grid {
+    @apply min-w-full divide-y divide-slate-200;
+  }
+
+  .table-head {
+    @apply bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500;
+  }
+
+  .table-head-cell {
+    @apply px-4 py-3 text-left;
+  }
+
+  .table-row {
+    @apply bg-white align-top transition hover:bg-slate-50/70;
+  }
+
+  .table-cell {
+    @apply px-4 py-4 text-sm text-slate-700;
   }
 }

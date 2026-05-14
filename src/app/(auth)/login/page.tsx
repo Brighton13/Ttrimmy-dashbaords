@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { loginAction, registerStudentAction } from "@/app/actions/auth";
+import { loginAction } from "@/app/actions/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -19,142 +19,77 @@ export default async function LoginPage({
   const params = await searchParams;
 
   return (
-    <main className="mx-auto grid min-h-screen w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-10">
-      <section className="rounded-[2rem] border border-stone-200 bg-white p-8 shadow-sm shadow-stone-200/60 sm:p-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-700">Access</p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-          Clean access for students and the maintenance team.
+    <main className="mx-auto grid min-h-screen w-full max-w-[1280px] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+      <section className="surface-panel overflow-hidden bg-slate-950 p-8 text-white sm:p-10">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Secure access</p>
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+          Sign in to the facility response workspace.
         </h1>
-        <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
-          Students can register themselves. Supervisor, technician, and admin demo accounts are ready so you can test the workflow quickly.
+        <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
+          Every account is created by an administrator so user roles, departments, and workflow permissions stay controlled from day one.
         </p>
-        <div className="mt-8 space-y-4">
-          <div className="rounded-3xl bg-amber-50 p-5 ring-1 ring-amber-200">
-            <p className="text-sm font-semibold text-amber-900">Demo password</p>
-            <p className="mt-1 text-sm text-amber-800">Password123!</p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Demo password</p>
+            <p className="mt-2 text-lg font-semibold">Password123!</p>
           </div>
-          <div className="rounded-3xl border border-stone-200 bg-stone-50 p-5">
-            <h2 className="text-lg font-semibold text-slate-900">Seeded role logins</h2>
-            <div className="mt-4 space-y-3">
-              {demoAccounts.map(([role, email]) => (
-                <div className="flex items-center justify-between gap-3" key={email}>
-                  <span className="text-sm font-medium text-slate-700">{role}</span>
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-stone-200">
-                    {email}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Access model</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Students submit issues. Supervisors assign by department. Technicians execute tasks. Admins manage users and oversight.</p>
           </div>
         </div>
-        <Link
-          className="mt-8 inline-flex rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-stone-200 transition hover:bg-stone-200/70"
-          href="/"
-        >
-          Back to overview
+        <div className="mt-8 rounded-[28px] border border-white/10 bg-white/5 p-6">
+          <h2 className="text-lg font-semibold">Seeded role logins</h2>
+          <div className="mt-4 space-y-3">
+            {demoAccounts.map(([role, email]) => (
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 px-4 py-3" key={email}>
+                <span className="text-sm font-medium text-slate-200">{role}</span>
+                <span className="text-sm text-slate-400">{email}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <Link className="mt-8 inline-flex text-sm font-medium text-cyan-300 transition hover:text-cyan-200" href="/">
+          Return to landing page
         </Link>
       </section>
 
-      <div className="space-y-5">
+      <div className="flex flex-col gap-5">
         {params.error ? (
-          <section className="rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
-            <strong className="font-semibold">Form status</strong>
+          <section className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            <strong className="font-semibold">Sign-in status</strong>
             <p className="mt-1">{params.error.replaceAll("_", " ")}</p>
           </section>
         ) : null}
 
-        <section className="rounded-[2rem] border border-stone-200 bg-white p-8 shadow-sm shadow-stone-200/60">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Login</h2>
-          <p className="mt-2 text-sm text-slate-500">
-            Use any seeded account or a student account you have registered.
-          </p>
-          <form action={loginAction} className="mt-6 space-y-4">
+        <section className="surface-panel p-8 sm:p-10">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Account login</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Enter your credentials</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Use the account details created for you by the administrator.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Role based access
+            </div>
+          </div>
+          <form action={loginAction} className="mt-8 space-y-5">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="login-email">
                 Email
               </label>
-              <input
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
-                id="login-email"
-                name="email"
-                type="email"
-                required
-              />
+              <input className="field-input" id="login-email" name="email" type="email" required />
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="login-password">
                 Password
               </label>
-              <input
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
-                id="login-password"
-                name="password"
-                type="password"
-                required
-              />
+              <input className="field-input" id="login-password" name="password" type="password" required />
             </div>
-            <button className="w-full rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800" type="submit">
+            <button className="primary-button w-full" type="submit">
               Enter dashboard
-            </button>
-          </form>
-        </section>
-
-        <section className="rounded-[2rem] border border-stone-200 bg-white p-8 shadow-sm shadow-stone-200/60">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Student registration</h2>
-          <p className="mt-2 text-sm text-slate-500">
-            Create an account and start reporting issues immediately.
-          </p>
-          <form action={registerStudentAction} className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="student-name">
-                Full name
-              </label>
-              <input
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
-                id="student-name"
-                name="name"
-                type="text"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="student-department">
-                Residence or department
-              </label>
-              <input
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
-                id="student-department"
-                name="department"
-                type="text"
-                required
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="student-email">
-                Email
-              </label>
-              <input
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
-                id="student-email"
-                name="email"
-                type="email"
-                required
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="student-password">
-                Password
-              </label>
-              <input
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
-                id="student-password"
-                name="password"
-                type="password"
-                required
-              />
-            </div>
-            <button className="w-full rounded-full bg-teal-700 px-5 py-3 text-sm font-medium text-white transition hover:bg-teal-800 sm:col-span-2" type="submit">
-              Register as student
             </button>
           </form>
         </section>
