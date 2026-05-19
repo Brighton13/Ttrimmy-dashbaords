@@ -19,7 +19,7 @@ export const appConfig = {
 export const roleLabels = {
   admin: "Administrator",
   student: "Student",
-  supervisor: "Supervisor",
+  supervisor: "Admin",
   technician: "Technician",
 } as const;
 

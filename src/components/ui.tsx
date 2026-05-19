@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { roleLabels } from "@/lib/core/config";
+
 export function MetricCard({
   label,
   value,
@@ -43,7 +45,10 @@ export function Panel({
 }
 
 export function StatusPill({ status }: { status: string }) {
-  const normalized = status.replaceAll("_", " ");
+  const normalized =
+    status in roleLabels
+      ? roleLabels[status as keyof typeof roleLabels]
+      : status.replaceAll("_", " ");
   const tone =
     status === "resolved"
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"

@@ -1,10 +1,9 @@
 import { Panel } from "@/components/ui";
-import { getPreferredLoginIdentifier } from "@/lib/auth/session";
-import { requireRole } from "@/lib/auth/session";
+import { getPreferredLoginIdentifier, requireRole, roleDescription } from "@/lib/auth/session";
 import { appConfig } from "@/lib/core/config";
 
 export default async function SettingsPage() {
-  const session = await requireRole(["admin"]);
+  const session = await requireRole(["supervisor"]);
 
   return (
     <div className="grid gap-6 xl:grid-cols-3">
@@ -45,7 +44,7 @@ export default async function SettingsPage() {
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-slate-600">Role</span>
-            <strong className="text-slate-900">{session.user.role}</strong>
+            <strong className="text-slate-900">{roleDescription(session.user.role)}</strong>
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-slate-600">Login ID</span>

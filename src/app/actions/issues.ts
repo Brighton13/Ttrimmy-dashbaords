@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { requireRole } from "@/lib/auth/session";
 import { issueCategories, issuePriorities, issueStatuses } from "@/lib/core/config";
-import { assignIssue, createIssue, updateIssueStatus } from "@/lib/services/issues";
+import { assignIssue, createIssue, sendIssueMessage, updateIssueStatus } from "@/lib/services/issues";
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -73,4 +73,30 @@ export async function updateIssueStatusAction(formData: FormData) {
   revalidatePath("/dashboard/issues");
   revalidatePath("/dashboard/tasks");
   redirect("/dashboard/tasks?updated=1");
+}
+
+export async function sendIssueMessageAction(formData: FormData) {
+  const session = await requireRole(["student", "technician"]);
+  const issueId = getString(formData, "issueId");
+  const body = getString(formData, "body");
+  const returnPath = getString(formData, "returnPath") || "/dashboard/issues";
+
+  try {
+    await sendIssueMessage({
+      issueId,
+      sender: session.user,
+      body,
+    });
+  } catch (error) {
+    const reason = error instanceof Error
+      ? error.message.toLowerCase().replaceAll(/[^a-z0-9]+/g, "_").replaceAll(/^_+|_+$/g, "")
+      : "message_failed";
+
+    redirect(`${returnPath}?error=${reason}`);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/issues");
+  revalidatePath("/dashboard/tasks");
+  redirect(`${returnPath}?messaged=1`);
 }

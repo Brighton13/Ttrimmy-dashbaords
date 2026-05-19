@@ -1,13 +1,15 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { Op } from "sequelize";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSession, requireRole } from "@/lib/auth/session";
 import { ensureAppReady } from "@/lib/core/bootstrap";
 import { userRoles, type UserRole } from "@/lib/core/config";
-import { User } from "@/lib/data/models";
+import { sequelize } from "@/lib/core/db";
+import { Issue, IssueMessage, Notification, User } from "@/lib/data/models";
 import { validateUserDepartment } from "@/lib/services/issues";
 
 function getString(formData: FormData, key: string) {
@@ -19,6 +21,10 @@ function isUserRole(value: string): value is UserRole {
   return userRoles.includes(value as UserRole);
 }
 
+function buildFullName(firstName: string, lastName: string) {
+  return `${firstName} ${lastName}`.trim().replaceAll(/\s+/g, " ");
+}
+
 function toErrorCode(error: unknown) {
   if (!(error instanceof Error)) {
     return "request_failed";
@@ -28,16 +34,18 @@ function toErrorCode(error: unknown) {
 }
 
 export async function createUserAction(formData: FormData) {
-  await requireRole(["admin"]);
+  await requireRole(["supervisor"]);
   await ensureAppReady();
 
-  const name = getString(formData, "name");
+  const firstName = getString(formData, "firstName");
+  const lastName = getString(formData, "lastName");
+  const name = buildFullName(firstName, lastName);
   const email = getString(formData, "email").toLowerCase();
   let password = getString(formData, "password");
   const role = getString(formData, "role");
   const department = getString(formData, "department");
 
-  if (!name || !email || !isUserRole(role)) {
+  if (!firstName || !lastName || !name || !email || !isUserRole(role)) {
     redirect("/dashboard/users?error=missing_fields");
   }
 
@@ -75,14 +83,17 @@ export async function createUserAction(formData: FormData) {
 }
 
 export async function updateUserAction(formData: FormData) {
-  const session = await requireRole(["admin"]);
+  const session = await requireRole(["supervisor"]);
   await ensureAppReady();
 
   const userId = getString(formData, "userId");
+  const firstName = getString(formData, "firstName");
+  const lastName = getString(formData, "lastName");
+  const name = buildFullName(firstName, lastName);
   const role = getString(formData, "role");
   const department = getString(formData, "department");
 
-  if (!userId || !isUserRole(role)) {
+  if (!userId || !firstName || !lastName || !name || !isUserRole(role)) {
     redirect("/dashboard/users?error=missing_fields");
   }
 
@@ -95,6 +106,7 @@ export async function updateUserAction(formData: FormData) {
       redirect("/dashboard/users?error=user_not_found");
     }
 
+    user.name = name;
     user.role = role;
     user.department = department || null;
     await user.save();
@@ -117,4 +129,102 @@ export async function updateUserAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/users");
   redirect("/dashboard/users?updated=1");
+}
+
+export async function deleteUserAction(formData: FormData) {
+  const session = await requireRole(["supervisor"]);
+  await ensureAppReady();
+
+  const userId = getString(formData, "userId");
+
+  if (!userId) {
+    redirect("/dashboard/users?error=missing_fields");
+  }
+
+  if (userId === session.user.id) {
+    redirect("/dashboard/users?error=cannot_delete_current_user");
+  }
+
+  try {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      redirect("/dashboard/users?error=user_not_found");
+    }
+
+    await sequelize.transaction(async (transaction) => {
+      const submittedIssues = await Issue.findAll({
+        where: { studentId: user.id },
+        attributes: ["id"],
+        transaction,
+      });
+
+      const submittedIssueIds = submittedIssues.map((issue) => issue.id);
+
+      if (submittedIssueIds.length > 0) {
+        await IssueMessage.destroy({
+          where: { issueId: submittedIssueIds },
+          transaction,
+        });
+
+        await Issue.destroy({
+          where: { id: submittedIssueIds },
+          transaction,
+        });
+      }
+
+      await IssueMessage.destroy({
+        where: { senderId: user.id },
+        transaction,
+      });
+
+      await Notification.destroy({
+        where: { userId: user.id },
+        transaction,
+      });
+
+      await Issue.update(
+        {
+          assignedToId: null,
+          status: "open",
+        },
+        {
+          where: {
+            assignedToId: user.id,
+            status: { [Op.ne]: "resolved" },
+          },
+          transaction,
+        },
+      );
+
+      await Issue.update(
+        { assignedToId: null },
+        {
+          where: {
+            assignedToId: user.id,
+            status: "resolved",
+          },
+          transaction,
+        },
+      );
+
+      await Issue.update(
+        { assignedById: null },
+        {
+          where: { assignedById: user.id },
+          transaction,
+        },
+      );
+
+      await user.destroy({ transaction });
+    });
+  } catch (error) {
+    redirect(`/dashboard/users?error=${toErrorCode(error)}`);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/issues");
+  revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard/users");
+  redirect("/dashboard/users?deleted=1");
 }

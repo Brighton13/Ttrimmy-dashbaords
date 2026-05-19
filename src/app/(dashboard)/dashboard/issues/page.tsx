@@ -1,5 +1,6 @@
 import { assignIssueAction, createIssueAction } from "@/app/actions/issues";
 import { ActionModal } from "@/components/action-modal";
+import { IssueChatPanel } from "@/components/issue-chat-panel";
 import { PaginationLinks } from "@/components/pagination-links";
 import { EmptyState, Panel, StatusPill } from "@/components/ui";
 import { requireRole } from "@/lib/auth/session";
@@ -16,7 +17,7 @@ export default async function IssuesPage({
   const session = await requireRole(["student", "supervisor"]);
   const params = await searchParams;
   const [issues, technicians] = await Promise.all([
-    listDashboardIssues(session.user.role, session.user.id, session.user.department),
+    listDashboardIssues(session.user.role, session.user.id),
     session.user.role === "supervisor"
       ? getTechnicians(session.user.department)
       : Promise.resolve([]),
@@ -33,12 +34,12 @@ export default async function IssuesPage({
       <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight text-slate-950">
-            {session.user.role === "student" ? "Requests" : "Assignments"}
+            {session.user.role === "student" ? "Requests" : "Issues"}
           </h2>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
             {session.user.role === "student"
               ? "Track submitted maintenance requests and raise new issues through a separate request form."
-              : "Review department intake and open assignment actions in separate modals from the list."}
+              : "Review the full issue queue and assign technicians for issues in your department."}
           </p>
         </div>
         {session.user.role === "student" ? (
@@ -128,7 +129,7 @@ export default async function IssuesPage({
                         </div>
                       </td>
                       <td className="table-cell">
-                        {session.user.role === "supervisor" ? (
+                        {session.user.role === "supervisor" && session.user.department === issue.category ? (
                           <ActionModal
                             description="Assign a technician and confirm delivery priority for this request."
                             title={`Assign ${issue.reference}`}
@@ -169,7 +170,12 @@ export default async function IssuesPage({
                             </form>
                           </ActionModal>
                         ) : (
-                          <span className="text-sm text-slate-600">{issue.assignee?.name ?? "Awaiting assignment"}</span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm text-slate-600">{issue.assignee?.name ?? (session.user.role === "supervisor" ? "View only outside your department" : "Awaiting assignment")}</span>
+                            {session.user.role === "student" && issue.assignedToId ? (
+                              <IssueChatPanel currentUserId={session.user.id} issue={issue} returnPath="/dashboard/issues" />
+                            ) : null}
+                          </div>
                         )}
                       </td>
                     </tr>

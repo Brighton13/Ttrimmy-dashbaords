@@ -17,8 +17,10 @@ export const dashboardNavByRole: Record<UserRole, DashboardNavItem[]> = {
   ],
   supervisor: [
     { href: "/dashboard", label: "Dashboard", icon: "overview" },
-    { href: "/dashboard/issues", label: "Assignments", icon: "issues" },
+    { href: "/dashboard/issues", label: "Issues", icon: "issues" },
     { href: "/dashboard/tasks", label: "Execution", icon: "tasks" },
+    { href: "/dashboard/users", label: "Users", icon: "users" },
+    { href: "/dashboard/settings", label: "Settings", icon: "settings" },
   ],
   admin: [
     { href: "/dashboard", label: "Dashboard", icon: "overview" },
@@ -44,10 +46,10 @@ export const roleHeroCopy: Record<
       "Review your queue, move work through execution, and record completion notes that supervisors and students can trust.",
   },
   supervisor: {
-    badge: "Department control",
-    title: "Route incoming work and keep departmental execution on track.",
+    badge: "Admin control",
+    title: "Manage people, review every issue, and keep execution on track.",
     description:
-      "Set priority, assign technicians in your department, and keep the backlog from drifting into service risk.",
+      "Handle user management, review the full issue queue, and assign technicians within the departments you own.",
   },
   admin: {
     badge: "Operations control",

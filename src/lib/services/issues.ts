@@ -9,7 +9,7 @@ import {
   type IssueStatus,
   type UserRole,
 } from "@/lib/core/config";
-import { Issue, User } from "@/lib/data/models";
+import { Issue, IssueMessage, User } from "@/lib/data/models";
 import { createNotification } from "@/lib/notifications/service";
 
 function getIssueDepartment(category: IssueCategory) {
@@ -26,10 +26,24 @@ function isTechnicalDepartment(department: string | null | undefined) {
   );
 }
 
+function buildIssueIncludes() {
+  return [
+    { model: User, as: "student", attributes: ["id", "name", "department"] },
+    { model: User, as: "assignee", attributes: ["id", "name", "department"] },
+    { model: User, as: "supervisor", attributes: ["id", "name"] },
+    {
+      model: IssueMessage,
+      as: "messages",
+      separate: true,
+      order: [["createdAt", "ASC"]],
+      include: [{ model: User, as: "sender", attributes: ["id", "name", "role"] }],
+    },
+  ];
+}
+
 export async function listDashboardIssues(
   role: UserRole,
   userId: string,
-  department?: string | null,
 ) {
   await ensureAppReady();
   const hasUserId = typeof userId === "string" && userId.length > 0;
@@ -41,10 +55,7 @@ export async function listDashboardIssues(
 
     return Issue.findAll({
       where: { studentId: userId },
-      include: [
-        { model: User, as: "assignee", attributes: ["id", "name", "department"] },
-        { model: User, as: "supervisor", attributes: ["id", "name"] },
-      ],
+      include: buildIssueIncludes(),
       order: [["createdAt", "DESC"]],
     });
   }
@@ -56,35 +67,20 @@ export async function listDashboardIssues(
 
     return Issue.findAll({
       where: { assignedToId: userId },
-      include: [{ model: User, as: "student", attributes: ["id", "name", "department"] }],
+      include: buildIssueIncludes(),
       order: [["updatedAt", "DESC"]],
     });
   }
 
   if (role === "supervisor") {
-    if (!isTechnicalDepartment(department)) {
-      return [];
-    }
-
-    const technicalDepartment = department as IssueCategory;
-
     return Issue.findAll({
-      where: { category: technicalDepartment },
-      include: [
-        { model: User, as: "student", attributes: ["id", "name", "department"] },
-        { model: User, as: "assignee", attributes: ["id", "name", "department"] },
-        { model: User, as: "supervisor", attributes: ["id", "name"] },
-      ],
+      include: buildIssueIncludes(),
       order: [["createdAt", "DESC"]],
     });
   }
 
   return Issue.findAll({
-    include: [
-      { model: User, as: "student", attributes: ["id", "name", "department"] },
-      { model: User, as: "assignee", attributes: ["id", "name", "department"] },
-      { model: User, as: "supervisor", attributes: ["id", "name"] },
-    ],
+    include: buildIssueIncludes(),
     order: [["createdAt", "DESC"]],
   });
 }
@@ -274,6 +270,65 @@ export async function getUserDirectory() {
   return User.findAll({
     order: [["role", "ASC"], ["name", "ASC"]],
   });
+}
+
+export async function sendIssueMessage(input: {
+  issueId: string;
+  sender: {
+    id: string;
+    role: UserRole;
+  };
+  body: string;
+}) {
+  await ensureAppReady();
+
+  const body = input.body.trim();
+
+  if (!body) {
+    throw new Error("Message body is required.");
+  }
+
+  const issue = await Issue.findByPk(input.issueId, {
+    include: [
+      { model: User, as: "student", attributes: ["id", "name"] },
+      { model: User, as: "assignee", attributes: ["id", "name"] },
+    ],
+  });
+
+  if (!issue) {
+    throw new Error("Issue not found.");
+  }
+
+  if (!issue.assignedToId) {
+    throw new Error("Chat is available after assignment.");
+  }
+
+  const isStudentParticipant = input.sender.role === "student" && issue.studentId === input.sender.id;
+  const isTechnicianParticipant = input.sender.role === "technician" && issue.assignedToId === input.sender.id;
+
+  if (!isStudentParticipant && !isTechnicianParticipant) {
+    throw new Error("Only the assigned technician and reporting student can chat.");
+  }
+
+  const message = await IssueMessage.create({
+    issueId: issue.id,
+    senderId: input.sender.id,
+    body,
+  });
+
+  const recipientId = isStudentParticipant ? issue.assignedToId : issue.studentId;
+  const senderName = isStudentParticipant
+    ? issue.student?.name ?? "Student"
+    : issue.assignee?.name ?? "Technician";
+
+  await createNotification({
+    userId: recipientId,
+    title: `New message on ${issue.reference}`,
+    message: `${senderName}: ${body}`,
+    type: "issue.message",
+  });
+
+  return message;
 }
 
 export async function validateUserDepartment(role: UserRole, department: string) {

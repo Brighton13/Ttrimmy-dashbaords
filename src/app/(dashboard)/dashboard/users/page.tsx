@@ -1,20 +1,36 @@
-import { createUserAction, updateUserAction } from "@/app/actions/users";
+import { createUserAction, deleteUserAction, updateUserAction } from "@/app/actions/users";
 import { ActionModal } from "@/components/action-modal";
 import { PaginationLinks } from "@/components/pagination-links";
 import { MetricCard, StatusPill } from "@/components/ui";
 import { getPreferredLoginIdentifier } from "@/lib/auth/session";
 import { requireRole } from "@/lib/auth/session";
-import { technicalDepartments, userRoles } from "@/lib/core/config";
+import { roleLabels, technicalDepartments, userRoles } from "@/lib/core/config";
 import { getUserDirectory } from "@/lib/services/issues";
 
 const USERS_PER_PAGE = 10;
+const assignableRoles = userRoles.filter((role) => role !== "admin");
+
+function splitName(name: string) {
+  const trimmed = name.trim();
+
+  if (!trimmed) {
+    return { firstName: "", lastName: "" };
+  }
+
+  const [firstName, ...rest] = trimmed.split(/\s+/);
+
+  return {
+    firstName,
+    lastName: rest.join(" "),
+  };
+}
 
 export default async function UsersPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string; q?: string }>;
 }) {
-  await requireRole(["admin"]);
+  await requireRole(["supervisor"]);
 
   const params = await searchParams;
   const search = (params.q ?? "").trim().toLowerCase();
@@ -42,10 +58,10 @@ export default async function UsersPage({
   const visibleUsers = filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
 
   const counts = {
-    admins: users.filter((user) => user.role === "admin").length,
+    admins: users.filter((user) => user.role === "supervisor").length,
     students: users.filter((user) => user.role === "student").length,
-    supervisors: users.filter((user) => user.role === "supervisor").length,
     technicians: users.filter((user) => user.role === "technician").length,
+    total: users.length,
   };
 
   return (
@@ -59,17 +75,23 @@ export default async function UsersPage({
             </p>
           </div>
           <ActionModal
-            description="Administrators create accounts and set role ownership before users access the workspace."
+            description="Admins create accounts and set role ownership before users access the workspace."
             title="Create user"
             triggerClassName="primary-button"
             triggerLabel="Add user"
           >
             <form action={createUserAction} className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="modal-user-name">
-                  Full name
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="modal-user-first-name">
+                  First name
                 </label>
-                <input className="field-input" id="modal-user-name" name="name" required type="text" />
+                <input className="field-input" id="modal-user-first-name" name="firstName" required type="text" />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="modal-user-last-name">
+                  Last name
+                </label>
+                <input className="field-input" id="modal-user-last-name" name="lastName" required type="text" />
               </div>
               <div className="sm:col-span-2">
                 <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="modal-user-email">
@@ -82,9 +104,9 @@ export default async function UsersPage({
                   Role
                 </label>
                 <select className="field-input" defaultValue="student" id="modal-user-role" name="role">
-                  {userRoles.map((role) => (
+                  {assignableRoles.map((role) => (
                     <option key={role} value={role}>
-                      {role}
+                      {roleLabels[role]}
                     </option>
                   ))}
                 </select>
@@ -111,8 +133,8 @@ export default async function UsersPage({
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard label="Admins" value={counts.admins} />
           <MetricCard label="Students" value={counts.students} />
-          <MetricCard label="Supervisors" value={counts.supervisors} />
           <MetricCard label="Technicians" value={counts.technicians} />
+          <MetricCard label="Total users" value={counts.total} />
         </div>
       </section>
 
@@ -164,21 +186,40 @@ export default async function UsersPage({
                     <StatusPill status={user.department ?? "general"} />
                   </td>
                   <td className="table-cell">
+                    {(() => {
+                      const { firstName, lastName } = splitName(user.name);
+
+                      return (
+                        <div className="flex flex-wrap gap-2">
                     <ActionModal
-                      description="Update role or department assignment for this user."
+                      description="Update the stored name, role, or department assignment for this user."
                       title={`Update ${user.name}`}
                       triggerLabel="Edit"
                     >
                       <form action={updateUserAction} className="grid gap-4">
                         <input name="userId" type="hidden" value={user.id} />
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`first-name-${user.id}`}>
+                              First name
+                            </label>
+                            <input className="field-input" defaultValue={firstName} id={`first-name-${user.id}`} name="firstName" required type="text" />
+                          </div>
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`last-name-${user.id}`}>
+                              Last name
+                            </label>
+                            <input className="field-input" defaultValue={lastName} id={`last-name-${user.id}`} name="lastName" required type="text" />
+                          </div>
+                        </div>
                         <div>
                           <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`role-${user.id}`}>
                             Role
                           </label>
                           <select className="field-input" defaultValue={user.role} id={`role-${user.id}`} name="role">
-                            {userRoles.map((role) => (
+                            {(user.role === "admin" ? userRoles : assignableRoles).map((role) => (
                               <option key={role} value={role}>
-                                {role}
+                                {roleLabels[role]}
                               </option>
                             ))}
                           </select>
@@ -194,6 +235,24 @@ export default async function UsersPage({
                         </button>
                       </form>
                     </ActionModal>
+                    <ActionModal
+                      description="Delete this account and clean up any linked records that depend on it."
+                      title={`Delete ${user.name}`}
+                      triggerLabel="Delete"
+                    >
+                      <form action={deleteUserAction} className="grid gap-4">
+                        <input name="userId" type="hidden" value={user.id} />
+                        <p className="text-sm leading-6 text-slate-600">
+                          This removes the user, their notifications, their chat messages, and any requests they reported.
+                        </p>
+                        <button className="rounded-full bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-500" type="submit">
+                          Confirm delete
+                        </button>
+                      </form>
+                    </ActionModal>
+                        </div>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}

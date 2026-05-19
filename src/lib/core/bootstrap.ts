@@ -40,16 +40,9 @@ async function seedIfEmpty() {
 
   const passwordHash = await bcrypt.hash("Password123!", 10);
 
-  const admin = await User.create({
+  const supervisor = await User.create({
     name: "Campus Admin",
     email: "admin@ttrimmy.local",
-    role: "admin",
-    passwordHash,
-    department: "Administration",
-  });
-  const supervisor = await User.create({
-    name: "Grace Supervisor",
-    email: "supervisor@ttrimmy.local",
     role: "supervisor",
     passwordHash,
     department: "Electrical",
@@ -103,7 +96,7 @@ async function seedIfEmpty() {
       type: "issue.assigned",
     },
     {
-      userId: admin.id,
+      userId: supervisor.id,
       title: "Demo workspace ready",
       message: "Seed data has been provisioned for all roles.",
       type: "system.seeded",

@@ -58,6 +58,7 @@ export class Issue extends Model<
   declare student?: NonAttribute<User>;
   declare assignee?: NonAttribute<User>;
   declare supervisor?: NonAttribute<User>;
+  declare messages?: NonAttribute<IssueMessage[]>;
 }
 
 export class Notification extends Model<
@@ -72,6 +73,21 @@ export class Notification extends Model<
   declare readAt: Date | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+}
+
+export class IssueMessage extends Model<
+  InferAttributes<IssueMessage>,
+  InferCreationAttributes<IssueMessage>
+> {
+  declare id: CreationOptional<string>;
+  declare issueId: string;
+  declare senderId: string;
+  declare body: string;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+
+  declare issue?: NonAttribute<Issue>;
+  declare sender?: NonAttribute<User>;
 }
 
 let initialized = false;
@@ -289,11 +305,50 @@ export function initializeModels() {
     },
   );
 
+  IssueMessage.init(
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
+      issueId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
+      senderId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
+      body: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+    },
+    {
+      sequelize,
+      modelName: "IssueMessage",
+      tableName: "issue_messages",
+    },
+  );
+
   User.hasMany(Issue, { as: "submittedIssues", foreignKey: "studentId" });
   User.hasMany(Issue, { as: "assignedIssues", foreignKey: "assignedToId" });
+  User.hasMany(IssueMessage, { as: "sentIssueMessages", foreignKey: "senderId" });
   Issue.belongsTo(User, { as: "student", foreignKey: "studentId" });
   Issue.belongsTo(User, { as: "assignee", foreignKey: "assignedToId" });
   Issue.belongsTo(User, { as: "supervisor", foreignKey: "assignedById" });
+  Issue.hasMany(IssueMessage, { as: "messages", foreignKey: "issueId" });
+  IssueMessage.belongsTo(Issue, { as: "issue", foreignKey: "issueId" });
+  IssueMessage.belongsTo(User, { as: "sender", foreignKey: "senderId" });
   Notification.belongsTo(User, { as: "user", foreignKey: "userId" });
   User.hasMany(Notification, { as: "notifications", foreignKey: "userId" });
 

@@ -1,5 +1,6 @@
 import { updateIssueStatusAction } from "@/app/actions/issues";
 import { ActionModal } from "@/components/action-modal";
+import { IssueChatPanel } from "@/components/issue-chat-panel";
 import { PaginationLinks } from "@/components/pagination-links";
 import { EmptyState, Panel, StatusPill } from "@/components/ui";
 import { requireRole } from "@/lib/auth/session";
@@ -14,11 +15,7 @@ export default async function TasksPage({
 }) {
   const session = await requireRole(["technician", "supervisor"]);
   const params = await searchParams;
-  const issues = await listDashboardIssues(
-    session.user.role,
-    session.user.id,
-    session.user.department,
-  );
+  const issues = await listDashboardIssues(session.user.role, session.user.id);
 
   const actionableIssues = issues.filter((issue) => issue.assignedToId || session.user.role !== "technician");
   const currentPage = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
@@ -72,35 +69,44 @@ export default async function TasksPage({
                       </div>
                     </td>
                     <td className="table-cell">
-                      <ActionModal
-                        description="Update execution status and capture any diagnostic or completion notes."
-                        title={`Update ${issue.reference}`}
-                        triggerLabel="Update"
-                      >
-                        <form action={updateIssueStatusAction} className="grid gap-4">
-                          <input name="issueId" type="hidden" value={issue.id} />
-                          <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`status-${issue.id}`}>
-                              Status
-                            </label>
-                            <select className="field-input" defaultValue={issue.status} id={`status-${issue.id}`} name="status">
-                              <option value="open">Open</option>
-                              <option value="pending">Pending</option>
-                              <option value="in_progress">In progress</option>
-                              <option value="resolved">Resolved</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`notes-${issue.id}`}>
-                              Notes
-                            </label>
-                            <textarea className="field-input min-h-28" id={`notes-${issue.id}`} name="resolutionNotes" placeholder="Add diagnostic notes, blockers, or completion details" />
-                          </div>
-                          <button className="primary-button" type="submit">
-                            Save update
-                          </button>
-                        </form>
-                      </ActionModal>
+                      {session.user.role === "technician" || session.user.department === issue.category ? (
+                        <div className="flex flex-wrap gap-2">
+                          <ActionModal
+                            description="Update execution status and capture any diagnostic or completion notes."
+                            title={`Update ${issue.reference}`}
+                            triggerLabel="Update"
+                          >
+                            <form action={updateIssueStatusAction} className="grid gap-4">
+                              <input name="issueId" type="hidden" value={issue.id} />
+                              <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`status-${issue.id}`}>
+                                  Status
+                                </label>
+                                <select className="field-input" defaultValue={issue.status} id={`status-${issue.id}`} name="status">
+                                  <option value="open">Open</option>
+                                  <option value="pending">Pending</option>
+                                  <option value="in_progress">In progress</option>
+                                  <option value="resolved">Resolved</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor={`notes-${issue.id}`}>
+                                  Notes
+                                </label>
+                                <textarea className="field-input min-h-28" id={`notes-${issue.id}`} name="resolutionNotes" placeholder="Add diagnostic notes, blockers, or completion details" />
+                              </div>
+                              <button className="primary-button" type="submit">
+                                Save update
+                              </button>
+                            </form>
+                          </ActionModal>
+                          {session.user.role === "technician" ? (
+                            <IssueChatPanel currentUserId={session.user.id} issue={issue} returnPath="/dashboard/tasks" />
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-slate-600">View only outside your department</span>
+                      )}
                     </td>
                   </tr>
                 ))}

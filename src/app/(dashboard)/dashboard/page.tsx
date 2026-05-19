@@ -7,7 +7,7 @@ export default async function DashboardPage() {
   const session = await requireSession();
   const [snapshot, issues] = await Promise.all([
     getAnalyticsSnapshot(),
-    listDashboardIssues(session.user.role, session.user.id, session.user.department),
+    listDashboardIssues(session.user.role, session.user.id),
   ]);
 
   const openIssues = issues.filter((issue) => issue.status !== "resolved").length;
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
       : session.user.role === "technician"
         ? "Assigned work"
         : session.user.role === "supervisor"
-          ? "Department queue"
+          ? "Issue queue"
           : "Latest activity";
 
   const focusByRole = {
@@ -59,8 +59,8 @@ export default async function DashboardPage() {
       { title: "What matters", detail: "Keep notes current so supervisors know what is blocked and what is resolved." },
     ],
     supervisor: [
-      { title: "Next action", detail: "Review unassigned items first, then balance load across technicians in your department." },
-      { title: "What matters", detail: "Priority and backlog are your early warning signs for service risk." },
+      { title: "Next action", detail: "Review unassigned items first, then route in-department work to the right technicians." },
+      { title: "What matters", detail: "User ownership, priority, and backlog are your early warning signs for service risk." },
     ],
     admin: [
       { title: "Next action", detail: "Keep user roles and departments aligned with how the facility team is structured." },
