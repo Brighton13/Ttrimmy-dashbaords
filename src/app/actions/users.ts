@@ -34,18 +34,18 @@ function toErrorCode(error: unknown) {
 }
 
 export async function createUserAction(formData: FormData) {
-  await requireRole(["supervisor"]);
+  await requireRole(["admin"]);
   await ensureAppReady();
 
   const firstName = getString(formData, "firstName");
   const lastName = getString(formData, "lastName");
   const name = buildFullName(firstName, lastName);
   const email = getString(formData, "email").toLowerCase();
-  let password = getString(formData, "password");
+  const password = getString(formData, "password");
   const role = getString(formData, "role");
   const department = getString(formData, "department");
 
-  if (!firstName || !lastName || !name || !email || !isUserRole(role)) {
+  if (!firstName || !lastName || !name || !email || !password || !isUserRole(role)) {
     redirect("/dashboard/users?error=missing_fields");
   }
 
@@ -56,12 +56,6 @@ export async function createUserAction(formData: FormData) {
 
     if (existing) {
       redirect("/dashboard/users?error=email_in_use");
-    }
-
-    if(role == "student"){
-      password = "1234";
-    }else if(role == "technician") {
-        password = "Technician123";
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -83,7 +77,7 @@ export async function createUserAction(formData: FormData) {
 }
 
 export async function updateUserAction(formData: FormData) {
-  const session = await requireRole(["supervisor"]);
+  const session = await requireRole(["admin"]);
   await ensureAppReady();
 
   const userId = getString(formData, "userId");
@@ -132,7 +126,7 @@ export async function updateUserAction(formData: FormData) {
 }
 
 export async function deleteUserAction(formData: FormData) {
-  const session = await requireRole(["supervisor"]);
+  const session = await requireRole(["admin"]);
   await ensureAppReady();
 
   const userId = getString(formData, "userId");

@@ -1,4 +1,5 @@
 import { ensureAppReady } from "@/lib/core/bootstrap";
+import type { Includeable, Order } from "sequelize";
 import {
   issueCategories,
   issuePriorities,
@@ -26,16 +27,18 @@ function isTechnicalDepartment(department: string | null | undefined) {
   );
 }
 
-function buildIssueIncludes() {
+function buildIssueIncludes(): Includeable[] {
+  const messageOrder: Order = [["createdAt", "ASC"]];
+
   return [
     { model: User, as: "student", attributes: ["id", "name", "department"] },
     { model: User, as: "assignee", attributes: ["id", "name", "department"] },
-    { model: User, as: "supervisor", attributes: ["id", "name"] },
+    { model: User, as: "admin", attributes: ["id", "name"] },
     {
       model: IssueMessage,
       as: "messages",
       separate: true,
-      order: [["createdAt", "ASC"]],
+      order: messageOrder,
       include: [{ model: User, as: "sender", attributes: ["id", "name", "role"] }],
     },
   ];
@@ -72,7 +75,7 @@ export async function listDashboardIssues(
     });
   }
 
-  if (role === "supervisor") {
+  if (role === "admin") {
     return Issue.findAll({
       include: buildIssueIncludes(),
       order: [["createdAt", "DESC"]],
@@ -104,14 +107,12 @@ export async function createIssue(input: {
     status: "open",
   });
 
-  const supervisors = await User.findAll({
-    where: { role: "supervisor", department: getIssueDepartment(input.category) },
-  });
+  const admins = await User.findAll({ where: { role: "admin" } });
 
   await Promise.all(
-    supervisors.map((supervisor) =>
+    admins.map((admin) =>
       createNotification({
-        userId: supervisor.id,
+        userId: admin.id,
         title: `New issue ${issue.reference}`,
         message: `${input.title} was reported at ${input.location}.`,
         type: "issue.created",
@@ -143,15 +144,11 @@ export async function assignIssue(input: {
     throw new Error("Issue not found.");
   }
 
-  if (input.assignedBy.role !== "supervisor") {
-    throw new Error("Only supervisors can assign tasks.");
+  if (input.assignedBy.role !== "admin") {
+    throw new Error("Only admins can assign tasks.");
   }
 
   const issueDepartment = getIssueDepartment(issue.category);
-
-  if (input.assignedBy.department !== issueDepartment) {
-    throw new Error("Supervisors can only assign tasks in their department.");
-  }
 
   if (!technician || technician.role !== "technician") {
     throw new Error("Assigned user must be a technician.");
@@ -206,18 +203,14 @@ export async function updateIssueStatus(input: {
     throw new Error("Issue not found.");
   }
 
-  const issueDepartment = getIssueDepartment(issue.category);
-
   if (input.actor.role === "technician") {
     if (issue.assignedToId !== input.actor.id) {
       throw new Error("Technicians can only update tasks assigned to them.");
     }
-  } else if (input.actor.role === "supervisor") {
-    if (input.actor.department !== issueDepartment) {
-      throw new Error("Supervisors can only update tasks in their department.");
-    }
+  } else if (input.actor.role === "admin") {
+    // Admins can review and update any issue across departments.
   } else {
-    throw new Error("Only supervisors and technicians can update tasks.");
+    throw new Error("Only admins and technicians can update tasks.");
   }
 
   issue.status = input.status;

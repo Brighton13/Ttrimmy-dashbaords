@@ -14,12 +14,12 @@ export default async function IssuesPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const session = await requireRole(["student", "supervisor"]);
+  const session = await requireRole(["student", "admin"]);
   const params = await searchParams;
   const [issues, technicians] = await Promise.all([
     listDashboardIssues(session.user.role, session.user.id),
-    session.user.role === "supervisor"
-      ? getTechnicians(session.user.department)
+    session.user.role === "admin"
+      ? getTechnicians()
       : Promise.resolve([]),
   ]);
 
@@ -39,7 +39,7 @@ export default async function IssuesPage({
           <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
             {session.user.role === "student"
               ? "Track submitted maintenance requests and raise new issues through a separate request form."
-              : "Review the full issue queue and assign technicians for issues in your department."}
+              : "Review the full issue queue and assign technicians across every maintenance department."}
           </p>
         </div>
         {session.user.role === "student" ? (
@@ -129,7 +129,7 @@ export default async function IssuesPage({
                         </div>
                       </td>
                       <td className="table-cell">
-                        {session.user.role === "supervisor" && session.user.department === issue.category ? (
+                        {session.user.role === "admin" ? (
                           <ActionModal
                             description="Assign a technician and confirm delivery priority for this request."
                             title={`Assign ${issue.reference}`}
@@ -171,7 +171,7 @@ export default async function IssuesPage({
                           </ActionModal>
                         ) : (
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm text-slate-600">{issue.assignee?.name ?? (session.user.role === "supervisor" ? "View only outside your department" : "Awaiting assignment")}</span>
+                            <span className="text-sm text-slate-600">{issue.assignee?.name ?? "Awaiting assignment"}</span>
                             {session.user.role === "student" && issue.assignedToId ? (
                               <IssueChatPanel currentUserId={session.user.id} issue={issue} returnPath="/dashboard/issues" />
                             ) : null}

@@ -13,7 +13,7 @@ export default async function TasksPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const session = await requireRole(["technician", "supervisor"]);
+  const session = await requireRole(["technician", "admin"]);
   const params = await searchParams;
   const issues = await listDashboardIssues(session.user.role, session.user.id);
 
@@ -32,7 +32,7 @@ export default async function TasksPage({
       {actionableIssues.length === 0 ? (
         <EmptyState
           title="No tasks yet"
-          description="Assignments will appear here once the supervisor routes work to you."
+          description="Assignments will appear here once the admin routes work to you."
         />
       ) : (
         <div className="table-shell -mx-6 overflow-hidden rounded-none border-x-0 border-b-0 sm:-mx-7">
@@ -69,7 +69,7 @@ export default async function TasksPage({
                       </div>
                     </td>
                     <td className="table-cell">
-                      {session.user.role === "technician" || session.user.department === issue.category ? (
+                      {session.user.role === "technician" || session.user.role === "admin" ? (
                         <div className="flex flex-wrap gap-2">
                           <ActionModal
                             description="Update execution status and capture any diagnostic or completion notes."

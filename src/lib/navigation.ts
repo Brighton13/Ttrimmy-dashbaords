@@ -15,15 +15,10 @@ export const dashboardNavByRole: Record<UserRole, DashboardNavItem[]> = {
     { href: "/dashboard", label: "Dashboard", icon: "overview" },
     { href: "/dashboard/tasks", label: "Tasks", icon: "tasks" },
   ],
-  supervisor: [
+  admin: [
     { href: "/dashboard", label: "Dashboard", icon: "overview" },
     { href: "/dashboard/issues", label: "Issues", icon: "issues" },
     { href: "/dashboard/tasks", label: "Execution", icon: "tasks" },
-    { href: "/dashboard/users", label: "Users", icon: "users" },
-    { href: "/dashboard/settings", label: "Settings", icon: "settings" },
-  ],
-  admin: [
-    { href: "/dashboard", label: "Dashboard", icon: "overview" },
     { href: "/dashboard/users", label: "Users", icon: "users" },
     { href: "/dashboard/settings", label: "Settings", icon: "settings" },
   ],
@@ -43,18 +38,12 @@ export const roleHeroCopy: Record<
     badge: "Technician workspace",
     title: "Work through assigned jobs with clear ownership and status.",
     description:
-      "Review your queue, move work through execution, and record completion notes that supervisors and students can trust.",
-  },
-  supervisor: {
-    badge: "Admin control",
-    title: "Manage people, review every issue, and keep execution on track.",
-    description:
-      "Handle user management, review the full issue queue, and assign technicians within the departments you own.",
+      "Review your queue, move work through execution, and record completion notes that admins and students can trust.",
   },
   admin: {
-    badge: "Operations control",
-    title: "Manage users and monitor service performance from one place.",
+    badge: "Admin control",
+    title: "Manage users, review every issue, and keep execution on track.",
     description:
-      "Provision accounts, review workload trends, and keep the facility response process aligned with real operational demand.",
+      "Provision accounts, assign work across departments, review workload trends, and keep the facility response process aligned with real operational demand.",
   },
 };

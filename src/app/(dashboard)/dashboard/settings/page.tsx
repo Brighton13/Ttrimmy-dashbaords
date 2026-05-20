@@ -3,7 +3,7 @@ import { getPreferredLoginIdentifier, requireRole, roleDescription } from "@/lib
 import { appConfig } from "@/lib/core/config";
 
 export default async function SettingsPage() {
-  const session = await requireRole(["supervisor"]);
+  const session = await requireRole(["admin"]);
 
   return (
     <div className="grid gap-6 xl:grid-cols-3">

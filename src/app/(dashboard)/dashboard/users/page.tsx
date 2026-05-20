@@ -30,7 +30,7 @@ export default async function UsersPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string }>;
 }) {
-  await requireRole(["supervisor"]);
+  await requireRole(["admin"]);
 
   const params = await searchParams;
   const search = (params.q ?? "").trim().toLowerCase();
@@ -58,7 +58,7 @@ export default async function UsersPage({
   const visibleUsers = filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
 
   const counts = {
-    admins: users.filter((user) => user.role === "supervisor").length,
+    admins: users.filter((user) => user.role === "admin").length,
     students: users.filter((user) => user.role === "student").length,
     technicians: users.filter((user) => user.role === "technician").length,
     total: users.length,

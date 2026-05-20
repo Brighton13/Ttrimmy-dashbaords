@@ -57,7 +57,7 @@ export class Issue extends Model<
 
   declare student?: NonAttribute<User>;
   declare assignee?: NonAttribute<User>;
-  declare supervisor?: NonAttribute<User>;
+  declare admin?: NonAttribute<User>;
   declare messages?: NonAttribute<IssueMessage[]>;
 }
 
@@ -152,7 +152,7 @@ export function initializeModels() {
         unique: true,
       },
       role: {
-        type: DataTypes.ENUM("admin", "student", "supervisor", "technician"),
+        type: DataTypes.ENUM("admin", "student", "technician"),
         allowNull: false,
       },
       passwordHash: {
@@ -345,7 +345,7 @@ export function initializeModels() {
   User.hasMany(IssueMessage, { as: "sentIssueMessages", foreignKey: "senderId" });
   Issue.belongsTo(User, { as: "student", foreignKey: "studentId" });
   Issue.belongsTo(User, { as: "assignee", foreignKey: "assignedToId" });
-  Issue.belongsTo(User, { as: "supervisor", foreignKey: "assignedById" });
+  Issue.belongsTo(User, { as: "admin", foreignKey: "assignedById" });
   Issue.hasMany(IssueMessage, { as: "messages", foreignKey: "issueId" });
   IssueMessage.belongsTo(Issue, { as: "issue", foreignKey: "issueId" });
   IssueMessage.belongsTo(User, { as: "sender", foreignKey: "senderId" });

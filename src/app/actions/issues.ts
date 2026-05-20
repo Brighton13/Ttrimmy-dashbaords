@@ -34,7 +34,7 @@ export async function createIssueAction(formData: FormData) {
 }
 
 export async function assignIssueAction(formData: FormData) {
-  const session = await requireRole(["supervisor"]);
+  const session = await requireRole(["admin"]);
   const priority = getString(formData, "priority");
 
   if (!issuePriorities.includes(priority as (typeof issuePriorities)[number])) {
@@ -55,7 +55,7 @@ export async function assignIssueAction(formData: FormData) {
 }
 
 export async function updateIssueStatusAction(formData: FormData) {
-  const session = await requireRole(["technician", "supervisor"]);
+  const session = await requireRole(["technician", "admin"]);
   const status = getString(formData, "status");
 
   if (!issueStatuses.includes(status as (typeof issueStatuses)[number])) {

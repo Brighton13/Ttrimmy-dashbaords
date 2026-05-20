@@ -26,15 +26,9 @@ export default async function DashboardPage() {
       { label: "In progress", value: inProgressIssues },
       { label: "Resolved", value: resolvedIssues },
     ],
-    supervisor: [
+    admin: [
       { label: "Backlog", value: snapshot.totals.backlog },
       { label: "Unassigned", value: unassignedIssues },
-      { label: "Critical open", value: snapshot.totals.criticalOpen },
-      { label: "Avg resolution", value: `${snapshot.totals.avgResolutionHours.toFixed(1)}h` },
-    ],
-    admin: [
-      { label: "Total issues", value: snapshot.totals.issues },
-      { label: "Backlog", value: snapshot.totals.backlog },
       { label: "Critical open", value: snapshot.totals.criticalOpen },
       { label: "Avg resolution", value: `${snapshot.totals.avgResolutionHours.toFixed(1)}h` },
     ],
@@ -45,9 +39,7 @@ export default async function DashboardPage() {
       ? "Recent requests"
       : session.user.role === "technician"
         ? "Assigned work"
-        : session.user.role === "supervisor"
-          ? "Issue queue"
-          : "Latest activity";
+        : "Issue queue";
 
   const focusByRole = {
     student: [
@@ -56,15 +48,11 @@ export default async function DashboardPage() {
     ],
     technician: [
       { title: "Next action", detail: "Move assigned jobs into progress as soon as work starts on site." },
-      { title: "What matters", detail: "Keep notes current so supervisors know what is blocked and what is resolved." },
-    ],
-    supervisor: [
-      { title: "Next action", detail: "Review unassigned items first, then route in-department work to the right technicians." },
-      { title: "What matters", detail: "User ownership, priority, and backlog are your early warning signs for service risk." },
+      { title: "What matters", detail: "Keep notes current so admins know what is blocked and what is resolved." },
     ],
     admin: [
-      { title: "Next action", detail: "Keep user roles and departments aligned with how the facility team is structured." },
-      { title: "What matters", detail: "Use backlog and closure time to decide where support or staffing is needed." },
+      { title: "Next action", detail: "Review unassigned items first, then route work to the right technicians across departments." },
+      { title: "What matters", detail: "User ownership, priority, and backlog are your early warning signs for service risk." },
     ],
   } as const;
 

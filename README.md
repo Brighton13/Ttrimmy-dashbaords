@@ -1,6 +1,6 @@
 # Ttrimmy Facility Response
 
-Role-based facilities issue management for a campus environment. Students register and report issues, supervisors assign work to technicians, technicians complete tasks, and administrators monitor analytics for operational decisions.
+Role-based facilities issue management for a campus environment. Students register and report issues, admins assign work to technicians, technicians complete tasks, and administrators monitor analytics for operational decisions.
 
 ## Stack
 
@@ -13,7 +13,7 @@ Role-based facilities issue management for a campus environment. Students regist
 ## Implemented Workflow
 
 - Students can self-register and submit issues for plumbing, electrical, broken windows, networking, furniture, and safety concerns.
-- Supervisors can triage incoming issues and assign them to technicians.
+- admins can triage incoming issues and assign them to technicians.
 - Technicians can update assigned tasks and resolve jobs with notes.
 - Administrators can review backlog, critical issue volume, resolution time, and category distribution.
 - Notifications are persisted in Postgres, published through Redis, pushed through WebSockets, and optionally copied to email.
@@ -57,7 +57,7 @@ If Redis is not configured, notifications still work inside a single process thr
 These accounts are created automatically on first boot if the database is empty.
 
 - Admin: `admin@ttrimmy.local`
-- Supervisor: `supervisor@ttrimmy.local`
+- admin: `admin@ttrimmy.local`
 - Technician: `electrician@ttrimmy.local`
 - Technician: `plumber@ttrimmy.local`
 - Student: `student@ttrimmy.local`

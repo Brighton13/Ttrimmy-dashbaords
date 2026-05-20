@@ -40,10 +40,10 @@ async function seedIfEmpty() {
 
   const passwordHash = await bcrypt.hash("Password123!", 10);
 
-  const supervisor = await User.create({
+  const admin = await User.create({
     name: "Campus Admin",
     email: "admin@ttrimmy.local",
-    role: "supervisor",
+    role: "admin",
     passwordHash,
     department: "Electrical",
   });
@@ -79,12 +79,12 @@ async function seedIfEmpty() {
     status: "in_progress",
     studentId: student.id,
     assignedToId: electrician.id,
-    assignedById: supervisor.id,
+    assignedById: admin.id,
   });
 
   await Notification.bulkCreate([
     {
-      userId: supervisor.id,
+      userId: admin.id,
       title: "New sample issue seeded",
       message: `Issue ${issue.reference} is pending department assignment.`,
       type: "issue.created",
@@ -96,7 +96,7 @@ async function seedIfEmpty() {
       type: "issue.assigned",
     },
     {
-      userId: supervisor.id,
+      userId: admin.id,
       title: "Demo workspace ready",
       message: "Seed data has been provisioned for all roles.",
       type: "system.seeded",
@@ -121,7 +121,7 @@ async function seedIfEmpty() {
     priority: "medium",
     status: "pending",
     studentId: student.id,
-    assignedById: supervisor.id,
+    assignedById: admin.id,
     assignedToId: plumber.id,
   });
 }

@@ -19,11 +19,10 @@ export const appConfig = {
 export const roleLabels = {
   admin: "Administrator",
   student: "Student",
-  supervisor: "Admin",
   technician: "Technician",
 } as const;
 
-export const userRoles = ["admin", "student", "supervisor", "technician"] as const;
+export const userRoles = ["admin", "student", "technician"] as const;
 
 export const issueCategories = [
   "Plumbing",
@@ -35,7 +34,7 @@ export const issueCategories = [
 ] as const;
 
 export const technicalDepartments = issueCategories;
-export const technicalRoles = ["supervisor", "technician"] as const;
+export const technicalRoles = ["admin", "technician"] as const;
 
 export const issueStatuses = [
   "open",

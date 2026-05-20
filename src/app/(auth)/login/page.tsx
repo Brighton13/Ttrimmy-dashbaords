@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { loginAction } from "@/app/actions/auth";
 
 export const dynamic = "force-dynamic";
@@ -5,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string }>;
 }) {
   const params = await searchParams;
 
@@ -27,6 +29,12 @@ export default async function LoginPage({
         </div>
 
         <div className="mx-auto mt-10 w-full max-w-[470px] flex-col gap-5">
+        {params.reset ? (
+          <section className="mb-4 rounded-[24px] border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+            <strong className="font-semibold">Password updated</strong>
+            <p className="mt-1">Your password has been reset. Sign in with the new password.</p>
+          </section>
+        ) : null}
         {params.error ? (
           <section className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
             <strong className="font-semibold">Sign-in status</strong>
@@ -57,12 +65,13 @@ export default async function LoginPage({
             <form action={loginAction} className="mt-8 space-y-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="login-identifier">
-                  Email
+                  Email or login ID
                 </label>
                 <input
                   className="w-full rounded-xl border border-[#e2e8f6] bg-[#edf4ff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
                   id="login-identifier"
                   name="identifier"
+                  placeholder="name@example.com, STU-00001, or EMP-00001"
                   required
                   type="text"
                 />
@@ -85,7 +94,11 @@ export default async function LoginPage({
               >
                 Log In
               </button>
-              <p className="text-center text-sm font-medium text-slate-600">Forgot Password</p>
+              <p className="text-center text-sm font-medium text-slate-600">
+                <Link className="text-sky-700 transition hover:text-sky-800" href="/forgot-password">
+                  Forgot password?
+                </Link>
+              </p>
             </form>
           </section>
         </div>

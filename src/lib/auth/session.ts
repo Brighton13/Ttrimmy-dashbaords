@@ -25,6 +25,13 @@ export type AppSession = {
   realtimeToken: string;
 };
 
+type PasswordResetTokenPayload = {
+  sub: string;
+  email: string;
+  exp: number;
+  stamp: string;
+};
+
 function isSessionUser(value: unknown): value is SessionUser {
   if (!value || typeof value !== "object") {
     return false;
@@ -62,6 +69,10 @@ function sign(value: string) {
     .digest("hex");
 }
 
+function createPasswordResetStamp(passwordHash: string) {
+  return crypto.createHash("sha256").update(passwordHash).digest("hex");
+}
+
 function encode(user: SessionUser) {
   const payload = Buffer.from(JSON.stringify(user)).toString("base64url");
   return `${payload}.${sign(payload)}`;
@@ -79,6 +90,85 @@ function decode(token: string): SessionUser | null {
   } catch {
     return null;
   }
+}
+
+function encodePasswordResetToken(payload: PasswordResetTokenPayload) {
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  return `${encodedPayload}.${sign(encodedPayload)}`;
+}
+
+function decodePasswordResetToken(token: string): PasswordResetTokenPayload | null {
+  const [payload, signature] = token.split(".");
+
+  if (!payload || !signature || sign(payload) !== signature) {
+    return null;
+  }
+
+  try {
+    const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Partial<PasswordResetTokenPayload>;
+
+    if (
+      typeof decoded.sub !== "string"
+      || decoded.sub.length === 0
+      || typeof decoded.email !== "string"
+      || decoded.email.length === 0
+      || typeof decoded.exp !== "number"
+      || typeof decoded.stamp !== "string"
+      || decoded.stamp.length === 0
+    ) {
+      return null;
+    }
+
+    return decoded as PasswordResetTokenPayload;
+  } catch {
+    return null;
+  }
+}
+
+export async function findUserByIdentifier(identifier: string) {
+  await ensureAppReady();
+  const normalizedIdentifier = identifier.trim();
+  const normalizedEmail = normalizedIdentifier.toLowerCase();
+  const normalizedLoginId = normalizedIdentifier.toUpperCase();
+
+  const userByEmail = await User.findOne({ where: { email: normalizedEmail } });
+  const userByStudentId = userByEmail
+    ? null
+    : await User.findOne({ where: { studentId: normalizedLoginId } });
+
+  return userByStudentId
+    ?? userByEmail
+    ?? await User.findOne({ where: { employeeId: normalizedLoginId } });
+}
+
+export function createPasswordResetToken(user: Pick<SessionUser, "id" | "email"> & { passwordHash: string }) {
+  return encodePasswordResetToken({
+    sub: user.id,
+    email: user.email,
+    exp: Date.now() + 1000 * 60 * 30,
+    stamp: createPasswordResetStamp(user.passwordHash),
+  });
+}
+
+export async function getUserForPasswordResetToken(token: string) {
+  const payload = decodePasswordResetToken(token);
+
+  if (!payload || payload.exp < Date.now()) {
+    return null;
+  }
+
+  await ensureAppReady();
+  const user = await User.findByPk(payload.sub);
+
+  if (!user || user.email !== payload.email) {
+    return null;
+  }
+
+  if (createPasswordResetStamp(user.passwordHash) !== payload.stamp) {
+    return null;
+  }
+
+  return user;
 }
 
 export async function createSession(user: SessionUser) {
@@ -109,7 +199,6 @@ export async function getCurrentSession(): Promise<AppSession | null> {
   const user = decode(raw);
 
   if (!isSessionUser(user)) {
-    cookieStore.delete(SESSION_COOKIE);
     return null;
   }
 
@@ -144,18 +233,7 @@ export function roleDescription(role: UserRole) {
 }
 
 export async function authenticateUser(identifier: string, password: string) {
-  await ensureAppReady();
-  const normalizedIdentifier = identifier.trim();
-  const normalizedEmail = normalizedIdentifier.toLowerCase();
-  const normalizedLoginId = normalizedIdentifier.toUpperCase();
-
-  const userByEmail = await User.findOne({ where: { email: normalizedEmail } });
-  const userByStudentId = userByEmail
-    ? null
-    : await User.findOne({ where: { studentId: normalizedLoginId } });
-  const user = userByStudentId
-    ?? userByEmail
-    ?? await User.findOne({ where: { employeeId: normalizedLoginId } });
+  const user = await findUserByIdentifier(identifier);
 
   if (!user) {
     return null;
